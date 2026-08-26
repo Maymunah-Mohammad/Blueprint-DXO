@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Blueprint</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+            background-color: #ffffff;
+            padding: 2rem;
+            margin: 0;
+        }
+
+        /* Layouts */
+        .main-layout {
+            display: flex;
+            gap: 24px;
+            width: 100%;
+            align-items: stretch;
+        }
+
+        .blueprint-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Sidebar Steps Frame */
+        .steps-frame {
+            width: 319px;
+            flex-shrink: 0;
+            background-color: #f1f6fb;
+            border-radius: 8px;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 1px 2px 0 rgba(16, 24, 40, 0.04);
+            direction: rtl;
+        }
+        .steps-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #040404;
+            margin-bottom: 8px;
+            text-align: right;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .form-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #040404;
+        }
+        .form-select, .form-textarea, .form-input {
+            width: 100%;
+            border: 1px solid #d2d6db;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 14px;
+            font-family: inherit;
+            background-color: #ffffff;
+            outline: none;
+            color: #040404;
+        }
+        
+        .input-group {
+            display: flex;
+            border: 1px solid #d2d6db;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #ffffff;
+        }
+        .input-group .form-input, .input-group .form-select {
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        .input-group .form-select {
+            width: 90px;
+            border-right: 1px solid #d2d6db;
+            padding: 8px;
+        }
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%235A5A5A' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: left 12px center;
+        }
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .form-hint {
+            font-size: 12px;
+            color: #5a5a5a;
+            line-height: 1.4;
+        }
+        .add-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            width: 100%;
+            height: 38px;
+            background-color: #ffffff;
+            border: 1px solid #d2d6db;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #040404;
+            cursor: pointer;
+            margin-top: auto;
+        }
+
+        /* Custom Dropdown Styles */
+        .custom-select-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            border: 1px solid #d2d6db;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 14px;
+            background-color: #ffffff;
+            color: #040404;
+        }
+        
+        .custom-select-trigger.active {
+            border-color: #276749; /* Dark green outline */
+            box-shadow: 0 0 0 3px #c6f6d5; /* Light green halo */
+        }
+        
+        .custom-select-trigger.active svg {
+            transform: rotate(180deg);
+        }
+        
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #ffffff;
+            font-size: 14px;
+            color: #040404;
+        }
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Actions Frame */
+        .actions-frame {
+            height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
+            margin-bottom: 8px;
+            background-color: #FCFDFE;
+        }
+
+        /* Header Frame */
+        .header-frame {
+            height: 56px;
+            background-color: #f1f6fb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 0 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #ffffff;
+            border: 1px solid #d2d6db;
+            border-radius: 8px;
+            padding: 0 12px;
+            height: 38px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #040404;
+            box-shadow: 0 1px 2px 0 rgba(16, 24, 40, 0.04);
+            cursor: pointer;
+        }
+        
+        .header-input-container {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            max-width: 608px;
+            height: 40px;
+            background-color: #ffffff;
+            border: 1px solid #d2d6db;
+            border-radius: 8px;
+            padding: 0 16px;
+            box-shadow: 0 1px 2px 0 rgba(16, 24, 40, 0.04);
+        }
+        
+        .header-input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 16px;
+            font-weight: 500;
+            color: #040404;
+            background: transparent;
+            text-align: right;
+        }
+        
+        .header-input::placeholder {
+            color: #5a5a5a;
+        }
+
+        /* Blueprint Blocks */
+        .section-box {
+            display: flex;
+            align-items: center;
+            height: 208px;
+            border-radius: 4px;
+            position: relative;
+        }
+        .label-box {
+            width: 223px;
+            height: 188px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            margin-left: 10px;
+            border-radius: 0;
+        }
+        .line-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            height: 24px;
+            padding-left: 10px;
+        }
+        .line-text {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: #111827;
+            white-space: nowrap;
+            font-weight: 700;
+        }
+        .line-dash {
+            flex-grow: 1;
+            height: 1px;
+            border-bottom: 1px dashed #4b5563;
+        }
+        .arabic-text {
+            font-weight: 700;
+            font-size: 14px;
+            color: #111827;
+            margin-bottom: 2px;
+        }
+        .english-text {
+            font-size: 13px;
+            color: #111827;
+            font-weight: 600;
+        }
+        
+        /* Specific Colors */
+        .ca-row { background-color: #eaf3fe; }
+        .ca-label { background-color: #9fccfd; }
+        
+        .fs-row { background-color: #eaf1ec; }
+        .fs-label { background-color: #b0d1c6; }
+        
+        .bs-row { background-color: #fef4e6; }
+        .bs-label { background-color: #fbcc8e; }
+        
+        .sp-row { background-color: #f0f4f8; }
+        .sp-label { background-color: #9fc3e5; }
+    </style>
+</head>
+<body>
+    
+    <!-- Header Frame -->
+    <div class="header-frame">
+        <button class="action-btn">
+            <span dir="rtl">سجل الرحلات</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
+                <line x1="9" y1="3" x2="9" y2="21"></line>
+                <line x1="15" y1="3" x2="15" y2="21"></line>
+            </svg>
+        </button>
+        <div class="header-input-container">
+            <input type="text" class="header-input" placeholder="اسم الرحلة" dir="rtl">
+        </div>
+    </div>
+
+    <div class="main-layout">
+        
+        <!-- Steps Frame -->
+        <div class="steps-frame">
+            <div class="steps-title">إدراج الخطوات</div>
+            
+            <div class="form-group relative">
+                <div class="form-label">الطبقة أو المسار (Layer / Tier)</div>
+                <!-- Custom Select Trigger -->
+                <div id="layer-dropdown-trigger" class="custom-select-trigger cursor-pointer">
+                    <span id="layer-selected-text">القائمة</span>
+                    <svg id="layer-chevron" width="12" height="8" viewBox="0 0 12 8" fill="none" stroke="#040404" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 1.5L6 6.5L11 1.5"></path>
+                    </svg>
+                </div>
+                
+                <!-- Dropdown Menu -->
+                <div id="layer-dropdown-menu" class="absolute left-0 right-0 top-[68px] bg-white border border-[#d2d6db] rounded-lg shadow-md overflow-hidden z-10 flex flex-col hidden">
+                    <!-- Option 1 -->
+                    <div class="dropdown-item ca-row" onclick="selectLayer('أفعال العميل (Customer Actions)', this)">
+                        <span>أفعال العميل (Customer Actions)</span>
+                        <svg class="check-icon text-green-600 block" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </div>
+                    <!-- Option 2 -->
+                    <div class="dropdown-item fs-row" onclick="selectLayer('الواجهة الأمامية / الخط الأمامي (Frontstage)', this)">
+                        <span>الواجهة الأمامية / الخط الأمامي (Frontstage)</span>
+                        <svg class="check-icon text-green-600 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </div>
+                    <!-- Option 3 -->
+                    <div class="dropdown-item bs-row" onclick="selectLayer('الكواليس / الخط الخلفي (Backstage)', this)">
+                        <span>الكواليس / الخط الخلفي (Backstage)</span>
+                        <svg class="check-icon text-green-600 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </div>
+                    <!-- Option 4 -->
+                    <div class="dropdown-item sp-row" onclick="selectLayer('العمليات والدعم (Support Processes / Behind the scenes)', this)">
+                        <span>العمليات والدعم (Support Processes / Behind the scenes)</span>
+                        <svg class="check-icon text-green-600 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <div class="form-label">اسم المرحلة (Step / Action Title)</div>
+                <input type="text" id="step-title-input" class="form-input" list="step-titles-list" placeholder="إدراج أو اختيار" dir="rtl">
+                <datalist id="step-titles-list">
+                    <!-- Dynamic options will be added here -->
+                </datalist>
+                <div class="form-hint">كتابة اسم الخطوة باختصار (مثلاً: "تصفح القائمة"، "إتمام الدفع").</div>
+            </div>
+            
+            <div class="form-group">
+                <div class="form-label">الأدلة المادية</div>
+                <input type="text" id="evidence-input" class="form-input" list="evidence-list" placeholder="إدراج أو اختيار" dir="rtl">
+                <datalist id="evidence-list">
+                    <!-- Dynamic options will be added here -->
+                </datalist>
+                <div class="form-hint">تحديد الأجهزة أو المستندات المستخدمة في الورقية، موقع الويب، جهاز الدفع POS).</div>
+            </div>
+            
+            <div class="form-group">
+                <div class="form-label">وصف النشاط أو العملية (Activity Description)</div>
+                <textarea class="form-textarea" placeholder="الوصف هنا"></textarea>
+                <div class="form-hint">شرح تفصيلي لما يحدث في هذه الخطوة خلف الكواليس أو من قبل الشخصية.</div>
+            </div>
+            
+            <div class="form-group">
+                <div class="form-label">النقاط الحرجة أو المشاكل (/ Pain Points Bottlenecks)</div>
+                <textarea class="form-textarea" placeholder="الوصف هنا"></textarea>
+                <div class="form-hint">تحديد ما إذا كان هناك تأخير أو مشكلة محتملة في هذه الخطوة (يتم تلوينها تلقائياً باللون الأحمر في المخطط كـ Alert).</div>
+            </div>
+            
+            <div class="form-group">
+                <div class="form-label">وقت التنفيذ</div>
+                <div class="input-group">
+                    <input type="text" class="form-input" placeholder="الوقت" style="flex-grow: 1;">
+                    <select class="form-select">
+                        <option value="second">ثانية</option>
+                        <option value="minute" selected>دقيقة</option>
+                        <option value="hour">ساعة</option>
+                        <option value="day">يوم</option>
+                        <option value="week">أسبوع</option>
+                        <option value="month">شهر</option>
+                    </select>
+                </div>
+                <div class="form-hint">أدخل متوسط الوقت المتوقع لتنفيذ هذا النشاط (مثلاً: 5 دقائق، أو ساعتان).</div>
+            </div>
+            
+            <button id="add-step-btn" class="add-btn">
+                <span>إضافة</span>
+                <span>+</span>
+            </button>
+        </div>
+
+        <div class="blueprint-container">
+            <!-- Customer Actions -->
+            <div class="section-box ca-row">
+                <div class="label-box ca-label">
+                    <span class="arabic-text" dir="rtl">أفعال العميل</span>
+                    <span class="english-text">(Customer Actions)</span>
+                </div>
+            </div>
+
+            <!-- Line of Interaction -->
+            <div class="line-container">
+                <div class="line-text">
+                    <span dir="rtl">خط التفاعل</span>
+                    <span>(LINE OF INTERACTION)</span>
+                </div>
+                <div class="line-dash"></div>
+            </div>
+
+            <!-- Frontstage -->
+            <div class="section-box fs-row">
+                <div class="label-box fs-label">
+                    <span class="arabic-text" dir="rtl">الواجهة الأمامية / الخط الأمامي</span>
+                    <span class="english-text">(Frontstage)</span>
+                </div>
+            </div>
+
+            <!-- Line of Visibility -->
+            <div class="line-container">
+                <div class="line-text">
+                    <span dir="rtl">خط الرؤية</span>
+                    <span>(LINE OF VISIBILITY)</span>
+                </div>
+                <div class="line-dash"></div>
+            </div>
+
+            <!-- Backstage -->
+            <div class="section-box bs-row">
+                <div class="label-box bs-label">
+                    <span class="arabic-text" dir="rtl">الكواليس / الخط الخلفي</span>
+                    <span class="english-text">(Backstage)</span>
+                </div>
+            </div>
+
+            <!-- Line of Internal Interaction -->
+            <div class="line-container">
+                <div class="line-text">
+                    <span dir="rtl">خط التفاعل الداخلي</span>
+                    <span>(LINE OF INTERNAL INTERACTION)</span>
+                </div>
+                <div class="line-dash"></div>
+            </div>
+
+            <!-- Support Processes -->
+            <div class="section-box sp-row">
+                <div class="label-box sp-label">
+                    <span class="arabic-text" dir="rtl">العمليات والدعم</span>
+                    <span class="english-text">(Support Processes / Behind the scenes)</span>
+                </div>
+            </div>
+
+            <!-- Actions Frame -->
+            <div class="actions-frame" dir="rtl" style="margin-top: 8px; margin-bottom: 0;">
+                <button class="action-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="3" x2="9" y2="21"></line>
+                        <path d="M13 8l4 4-4 4"></path>
+                    </svg>
+                    <span>عرض المخطط التفاعلي</span>
+                </button>
+                <button class="action-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                    <span>تصدير كصورة</span>
+                </button>
+                <button class="action-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    <span>تصدير كـ PDF</span>
+                </button>
+                <button class="action-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                    <span>نسخ الرابط</span>
+                </button>
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        const trigger = document.getElementById('layer-dropdown-trigger');
+        const menu = document.getElementById('layer-dropdown-menu');
+        const selectedText = document.getElementById('layer-selected-text');
+
+        // Toggle dropdown
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('hidden');
+            trigger.classList.toggle('active');
+        });
+
+        // Close when clicking outside
+        document.addEventListener('click', () => {
+            if (!menu.classList.contains('hidden')) {
+                menu.classList.add('hidden');
+                trigger.classList.remove('active');
+            }
+        });
+
+        // Handle selection for Layer
+        window.selectLayer = function(name, element) {
+            selectedText.textContent = name;
+            
+            // Hide all checks
+            document.querySelectorAll('.dropdown-item .check-icon').forEach(icon => {
+                icon.classList.remove('block');
+                icon.classList.add('hidden');
+            });
+            
+            // Show check on selected
+            const check = element.querySelector('.check-icon');
+            check.classList.remove('hidden');
+            check.classList.add('block');
+            
+            // Close menu
+            menu.classList.add('hidden');
+            trigger.classList.remove('active');
+        };
+
+        // Handle adding step and evidence to datalists
+        const addStepBtn = document.getElementById('add-step-btn');
+        const stepTitleInput = document.getElementById('step-title-input');
+        const stepTitlesList = document.getElementById('step-titles-list');
+        const evidenceInput = document.getElementById('evidence-input');
+        const evidenceList = document.getElementById('evidence-list');
+
+        addStepBtn.addEventListener('click', () => {
+            // Handle Step Title
+            const titleVal = stepTitleInput.value.trim();
+            if (titleVal) {
+                let exists = false;
+                Array.from(stepTitlesList.options).forEach(opt => {
+                    if (opt.value === titleVal) {
+                        exists = true;
+                    }
+                });
+                
+                if (!exists) {
+                    const newOpt = document.createElement('option');
+                    newOpt.value = titleVal;
+                    stepTitlesList.appendChild(newOpt);
+                }
+                stepTitleInput.value = '';
+            }
+
+            // Handle Physical Evidence
+            const evidenceVal = evidenceInput.value.trim();
+            if (evidenceVal) {
+                let exists = false;
+                Array.from(evidenceList.options).forEach(opt => {
+                    if (opt.value === evidenceVal) {
+                        exists = true;
+                    }
+                });
+                
+                if (!exists) {
+                    const newOpt = document.createElement('option');
+                    newOpt.value = evidenceVal;
+                    evidenceList.appendChild(newOpt);
+                }
+                evidenceInput.value = '';
+            }
+        });
+    </script>
+</body>
+</html>
