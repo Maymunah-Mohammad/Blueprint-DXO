@@ -179,7 +179,21 @@
             gap: 16px;
             padding: 0 16px;
             border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        /* Characters Frame */
+        .characters-frame {
+            min-height: 56px;
+            background-color: #f1f6fb;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
+            padding: 10px 16px;
+            border-radius: 8px;
             margin-bottom: 24px;
+            direction: rtl;
         }
         
         .action-btn {
@@ -233,6 +247,7 @@
             height: 208px;
             border-radius: 4px;
             position: relative;
+            direction: ltr;
         }
         .label-box {
             width: 223px;
@@ -242,7 +257,8 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            margin-left: 10px;
+            margin-right: 10px;
+            margin-left: 0;
             border-radius: 0;
         }
         .line-container {
@@ -250,7 +266,8 @@
             align-items: center;
             gap: 16px;
             height: 24px;
-            padding-left: 10px;
+            padding-right: 10px;
+            direction: ltr;
         }
         .line-text {
             display: flex;
@@ -278,6 +295,25 @@
             font-weight: 600;
         }
         
+        /* Disabled Form State & Validation Styles */
+        .disabled-form {
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(40%);
+            transition: all 0.3s ease;
+        }
+
+        .required-star {
+            color: #e11d48;
+            font-weight: bold;
+            margin-right: 2px;
+        }
+
+        .invalid-field {
+            border-color: #e11d48 !important;
+            box-shadow: 0 0 0 2px #fecdd3 !important;
+        }
+        
         /* Specific Colors */
         .ca-row { background-color: #eaf3fe; }
         .ca-label { background-color: #9fccfd; }
@@ -290,13 +326,133 @@
         
         .sp-row { background-color: #f0f4f8; }
         .sp-label { background-color: #9fc3e5; }
+
+        /* Floating Character Modal Overlay */
+        #character-modal {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            background-color: rgba(0, 0, 0, 0.65) !important;
+            backdrop-filter: blur(4px) !important;
+            -webkit-backdrop-filter: blur(4px) !important;
+            z-index: 999999 !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
     </style>
 </head>
-<body>
-    
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-gray-900 text-white text-sm px-4 py-3 rounded-lg shadow-lg hidden transition-opacity duration-300 z-50 flex items-center gap-2" dir="rtl">
+        <span id="toast-message">تم الحفظ بنجاح</span>
+    </div>
+
+    <!-- History Modal ("سجل الرحلات") -->
+    <div id="history-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 items-center justify-center p-4" style="display: none;" dir="rtl">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div class="p-4 border-b flex justify-between items-center bg-[#f1f6fb]">
+                <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
+                        <line x1="9" y1="3" x2="9" y2="21"></line>
+                        <line x1="15" y1="3" x2="15" y2="21"></line>
+                    </svg>
+                    سجل المخططات المحفوظة
+                </h3>
+                <button id="close-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl font-bold p-1 leading-none">&times;</button>
+            </div>
+            <div id="history-list-container" class="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
+                <!-- Dynamic history items loaded here -->
+            </div>
+            <div class="p-3 border-t bg-gray-50 flex justify-between items-center text-xs text-gray-500">
+                <span>يتم حفظ المخططات كملفات JSON في خادم الموقع تلقائياً</span>
+                <button id="new-blueprint-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1">
+                    <span>+ مخطط جديد</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Frame: Add Character Modal (Middle of screen, transparent dark background) -->
+    <div id="character-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4" style="display: none;" dir="rtl" onclick="if(event.target===this) hideCharacterModal()">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col border border-gray-100 animate-in fade-in zoom-in-95 duration-150 relative" onclick="event.stopPropagation()">
+            <div class="p-4 border-b flex justify-between items-center bg-[#f1f6fb] rounded-t-2xl">
+                <h3 class="font-bold text-base text-gray-800 flex items-center gap-2">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <line x1="20" y1="8" x2="20" y2="14"></line>
+                        <line x1="17" y1="11" x2="23" y2="11"></line>
+                    </svg>
+                    إضافة شخصية جديدة
+                </h3>
+                <button id="close-character-modal-btn" onclick="document.getElementById('character-modal').style.display='none'; document.getElementById('character-modal').style.setProperty('display','none','important');" class="text-gray-400 hover:text-gray-800 text-2xl font-bold p-1 leading-none transition-colors cursor-pointer" type="button">&times;</button>
+            </div>
+            
+            <form id="character-form" onsubmit="event.preventDefault(); submitCharacterModal();" class="p-5 flex flex-col gap-4">
+                <div class="form-group">
+                    <label class="form-label font-bold text-xs text-gray-700 block mb-1">اسم الشخصية أو المنفذ <span class="required-star">*</span></label>
+                    <input type="text" id="new-character-name-input" class="form-input w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:border-indigo-500 outline-none bg-white text-gray-900" placeholder="مثلاً: المستثمر، مدير النظام، العميل" required dir="rtl">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-bold text-xs text-gray-700 block mb-1">الطبقة أو المسار <span class="required-star">*</span></label>
+                    <select id="new-character-layer-select" onchange="onModalLayerChange(this)" class="form-select w-full border border-[#b0d1c6] rounded-lg p-2.5 text-xs bg-[#eaf3fe] text-[#0369a1] font-bold focus:border-indigo-500 outline-none cursor-pointer transition-colors" dir="rtl" required>
+                        <option value="Customer Actions" selected class="ca-row font-semibold text-[#0369a1]">أفعال العميل (Customer Actions)</option>
+                        <option value="Frontstage" class="fs-row font-semibold text-[#047857]">الواجهة الأمامية / الخط الأمامي (Frontstage)</option>
+                        <option value="Backstage" class="bs-row font-semibold text-[#b45309]">الكواليس / الخط الخلفي (Backstage)</option>
+                        <option value="Support Processes" class="sp-row font-semibold text-[#3730a3]">العمليات والدعم (Support Processes)</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t mt-2">
+                    <button type="button" id="cancel-character-modal-btn" onclick="document.getElementById('character-modal').style.display='none'; document.getElementById('character-modal').style.setProperty('display','none','important');" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-xs transition-colors cursor-pointer">إلغاء</button>
+                    <button type="submit" id="save-character-btn" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs flex items-center gap-1 transition-all cursor-pointer shadow-md active:scale-95">
+                        <span>حفظ</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Side Panel: Saved Blueprints Drawer (سجل الرحلات) -->
+    <div id="saved-blueprints-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white border-l border-gray-200 shadow-2xl z-[99999] flex flex-col transition-transform duration-300 transform translate-x-full" dir="rtl">
+        <!-- Sidebar Header -->
+        <div class="p-4 border-b bg-[#f1f6fb] flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
+                    <line x1="9" y1="3" x2="9" y2="21"></line>
+                    <line x1="15" y1="3" x2="15" y2="21"></line>
+                </svg>
+                <h3 class="font-bold text-sm text-gray-800">سجل الرحلات والمخططات</h3>
+            </div>
+            <button onclick="toggleSavedBlueprintsSidebar()" class="text-gray-400 hover:text-gray-700 text-xl font-bold p-1 leading-none cursor-pointer" type="button">&times;</button>
+        </div>
+
+        <!-- Create New Blueprint Button -->
+        <div class="p-3 border-b bg-gray-50 flex justify-between items-center">
+            <button onclick="window.createNewBlueprint()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer" type="button">
+                <span>+</span>
+                <span>مخطط جديد</span>
+            </button>
+        </div>
+
+        <!-- Sidebar Blueprints List -->
+        <div id="sidebar-blueprints-list" class="flex-1 overflow-y-auto p-3 flex flex-col gap-2.5">
+            <!-- Dynamic blueprint items loaded here -->
+        </div>
+
+        <!-- Sidebar Footer -->
+        <div class="p-3 border-t bg-gray-50 text-[11px] text-gray-500 text-center">
+            مخزنة في قاعدة البيانات SQLite
+        </div>
+    </div>
+
     <!-- Header Frame -->
     <div class="header-frame">
-        <button class="action-btn">
+        <button id="history-btn" onclick="toggleSavedBlueprintsSidebar()" class="action-btn cursor-pointer" type="button">
             <span dir="rtl">سجل الرحلات</span>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
@@ -305,110 +461,145 @@
             </svg>
         </button>
         <div class="header-input-container">
-            <input type="text" class="header-input" placeholder="اسم الرحلة" dir="rtl">
+            <input type="text" id="journey-title-input" class="header-input" placeholder="اسم المخطط" dir="rtl">
         </div>
+    </div>
+
+    <!-- Characters Frame -->
+    <div class="characters-frame flex items-center justify-between gap-4 p-3 bg-white border-b border-gray-200" id="characters-frame" dir="rtl">
+        <div class="flex items-center gap-3 overflow-x-auto flex-1 py-1">
+            <span class="font-bold text-xs text-gray-700 shrink-0 whitespace-nowrap">الشخصيات والأدوار</span>
+            <div class="flex items-center gap-2 overflow-x-auto py-1 flex-1" id="characters-list-container">
+                <!-- Dynamic character cards with radio buttons and 3-dots menus -->
+            </div>
+        </div>
+
+        <button id="add-character-btn" onclick="window.editingCharacterIndex=null; document.getElementById('character-modal').style.display='flex'; document.getElementById('character-modal').style.setProperty('display','flex','important'); if(window.openCharacterModal) window.openCharacterModal();" class="px-3.5 py-1.5 border border-gray-300 rounded-xl bg-white hover:bg-gray-50 text-gray-700 font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer shrink-0" type="button">
+            <span>+</span>
+            <span dir="rtl">إضافة شخصية</span>
+        </button>
     </div>
 
     <div class="main-layout">
         
         <!-- Steps Frame -->
         <div class="steps-frame">
-            <div class="steps-title">إدراج الخطوات</div>
+            <div class="steps-title flex justify-between items-center border-b border-gray-200 pb-2.5 mb-2">
+                <span>إدراج الخطوات</span>
+                <!-- Active Character Pill Badge -->
+                <div id="active-character-pill" class="bg-gray-100 text-gray-500 border border-gray-300 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5">
+                    <span>👤</span>
+                    <span id="active-character-name">اختر شخصية أولاً</span>
+                </div>
+            </div>
             
-            <div class="form-group relative">
-                <div class="form-label">الطبقة أو المسار (Layer / Tier)</div>
-                <!-- Custom Select Trigger -->
-                <div id="layer-dropdown-trigger" class="custom-select-trigger cursor-pointer">
-                    <span id="layer-selected-text">القائمة</span>
-                    <svg id="layer-chevron" width="12" height="8" viewBox="0 0 12 8" fill="none" stroke="#040404" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M1 1.5L6 6.5L11 1.5"></path>
-                    </svg>
+            <div class="form-group">
+                <div class="form-label">الشخصية أو المنفذ (Persona / Character) <span class="required-star">*</span></div>
+                <select id="character-select" class="form-select" dir="rtl">
+                    <option value="" disabled selected hidden>اختر الشخصية لتفعيل الإدخال</option>
+                    <!-- Populated dynamically from Characters Frame -->
+                </select>
+                <div class="form-hint">اختر شخصية من القائمة أو أضف شخصية جديدة من الأعلى.</div>
+            </div>
+
+            <!-- Steps Form Inputs Wrapper (Disabled until character is selected) -->
+            <div id="steps-form-wrapper" class="disabled-form flex flex-col gap-4">
+                <div class="form-group relative">
+                    <div class="form-label">الطبقة أو المسار (Layer / Tier) <span class="required-star">*</span></div>
+                    <!-- Custom Select Trigger -->
+                    <div id="layer-dropdown-trigger" class="custom-select-trigger cursor-pointer">
+                        <span id="layer-selected-text">اختيار الطبقة (اختر مما يلي)</span>
+                        <svg id="layer-chevron" width="12" height="8" viewBox="0 0 12 8" fill="none" stroke="#040404" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 1.5L6 6.5L11 1.5"></path>
+                        </svg>
+                    </div>
+                    
+                    <!-- Dropdown Menu -->
+                    <div id="layer-dropdown-menu" class="absolute left-0 right-0 top-[68px] bg-white border border-[#d2d6db] rounded-lg shadow-md overflow-hidden z-10 flex flex-col hidden">
+                        <!-- Option 1 -->
+                        <div class="dropdown-item ca-row" onclick="selectLayer('أفعال العميل (Customer Actions)', this)">
+                            <span>أفعال العميل (Customer Actions)</span>
+                            <svg class="check-icon text-green-600 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <!-- Option 2 -->
+                        <div class="dropdown-item fs-row" onclick="selectLayer('الواجهة الأمامية / الخط الأمامي (Frontstage)', this)">
+                            <span>الواجهة الأمامية / الخط الأمامي (Frontstage)</span>
+                            <svg class="check-icon text-green-600 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <!-- Option 3 -->
+                        <div class="dropdown-item bs-row" onclick="selectLayer('الكواليس / الخط الخلفي (Backstage)', this)">
+                            <span>الكواليس / الخط الخلفي (Backstage)</span>
+                            <svg class="check-icon text-green-600 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <!-- Option 4 -->
+                        <div class="dropdown-item sp-row" onclick="selectLayer('العمليات والدعم (Support Processes / Behind the scenes)', this)">
+                            <span>العمليات والدعم (Support Processes / Behind the scenes)</span>
+                            <svg class="check-icon text-green-600 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                    </div>
                 </div>
                 
-                <!-- Dropdown Menu -->
-                <div id="layer-dropdown-menu" class="absolute left-0 right-0 top-[68px] bg-white border border-[#d2d6db] rounded-lg shadow-md overflow-hidden z-10 flex flex-col hidden">
-                    <!-- Option 1 -->
-                    <div class="dropdown-item ca-row" onclick="selectLayer('أفعال العميل (Customer Actions)', this)">
-                        <span>أفعال العميل (Customer Actions)</span>
-                        <svg class="check-icon text-green-600 block" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    </div>
-                    <!-- Option 2 -->
-                    <div class="dropdown-item fs-row" onclick="selectLayer('الواجهة الأمامية / الخط الأمامي (Frontstage)', this)">
-                        <span>الواجهة الأمامية / الخط الأمامي (Frontstage)</span>
-                        <svg class="check-icon text-green-600 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    </div>
-                    <!-- Option 3 -->
-                    <div class="dropdown-item bs-row" onclick="selectLayer('الكواليس / الخط الخلفي (Backstage)', this)">
-                        <span>الكواليس / الخط الخلفي (Backstage)</span>
-                        <svg class="check-icon text-green-600 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    </div>
-                    <!-- Option 4 -->
-                    <div class="dropdown-item sp-row" onclick="selectLayer('العمليات والدعم (Support Processes / Behind the scenes)', this)">
-                        <span>العمليات والدعم (Support Processes / Behind the scenes)</span>
-                        <svg class="check-icon text-green-600 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    </div>
+                <div class="form-group">
+                    <div class="form-label">اسم المرحلة (Step / Action Title) <span class="required-star">*</span></div>
+                    <input type="text" id="step-title-input" class="form-input" list="step-titles-list" placeholder="إدراج أو اختيار" dir="rtl">
+                    <datalist id="step-titles-list">
+                        <!-- Dynamic options will be added here -->
+                    </datalist>
+                    <div class="form-hint">كتابة اسم الخطوة باختصار (مثلاً: "تصفح القائمة"، "إتمام الدفع").</div>
                 </div>
-            </div>
-            
-            <div class="form-group">
-                <div class="form-label">اسم المرحلة (Step / Action Title)</div>
-                <input type="text" id="step-title-input" class="form-input" list="step-titles-list" placeholder="إدراج أو اختيار" dir="rtl">
-                <datalist id="step-titles-list">
-                    <!-- Dynamic options will be added here -->
-                </datalist>
-                <div class="form-hint">كتابة اسم الخطوة باختصار (مثلاً: "تصفح القائمة"، "إتمام الدفع").</div>
-            </div>
-            
-            <div class="form-group">
-                <div class="form-label">الأدلة المادية</div>
-                <input type="text" id="evidence-input" class="form-input" list="evidence-list" placeholder="إدراج أو اختيار" dir="rtl">
-                <datalist id="evidence-list">
-                    <!-- Dynamic options will be added here -->
-                </datalist>
-                <div class="form-hint">تحديد الأجهزة أو المستندات المستخدمة في الورقية، موقع الويب، جهاز الدفع POS).</div>
-            </div>
-            
-            <div class="form-group">
-                <div class="form-label">وصف النشاط أو العملية (Activity Description)</div>
-                <textarea class="form-textarea" placeholder="الوصف هنا"></textarea>
-                <div class="form-hint">شرح تفصيلي لما يحدث في هذه الخطوة خلف الكواليس أو من قبل الشخصية.</div>
-            </div>
-            
-            <div class="form-group">
-                <div class="form-label">النقاط الحرجة أو المشاكل (/ Pain Points Bottlenecks)</div>
-                <textarea class="form-textarea" placeholder="الوصف هنا"></textarea>
-                <div class="form-hint">تحديد ما إذا كان هناك تأخير أو مشكلة محتملة في هذه الخطوة (يتم تلوينها تلقائياً باللون الأحمر في المخطط كـ Alert).</div>
-            </div>
-            
-            <div class="form-group">
-                <div class="form-label">وقت التنفيذ</div>
-                <div class="input-group">
-                    <input type="text" class="form-input" placeholder="الوقت" style="flex-grow: 1;">
-                    <select class="form-select">
-                        <option value="second">ثانية</option>
-                        <option value="minute" selected>دقيقة</option>
-                        <option value="hour">ساعة</option>
-                        <option value="day">يوم</option>
-                        <option value="week">أسبوع</option>
-                        <option value="month">شهر</option>
-                    </select>
+                
+                <div class="form-group">
+                    <div class="form-label">الأدلة المادية</div>
+                    <input type="text" id="evidence-input" class="form-input" list="evidence-list" placeholder="إدراج أو اختيار" dir="rtl">
+                    <datalist id="evidence-list">
+                        <!-- Dynamic options will be added here -->
+                    </datalist>
+                    <div class="form-hint">تحديد الأجهزة أو المستندات المستخدمة في الورقية، موقع الويب، جهاز الدفع POS).</div>
                 </div>
-                <div class="form-hint">أدخل متوسط الوقت المتوقع لتنفيذ هذا النشاط (مثلاً: 5 دقائق، أو ساعتان).</div>
+                
+                <div class="form-group">
+                    <div class="form-label">وصف النشاط أو العملية (Activity Description) <span class="required-star">*</span></div>
+                    <textarea id="activity-desc-input" class="form-textarea" placeholder="الوصف هنا"></textarea>
+                    <div class="form-hint">شرح تفصيلي لما يحدث في هذه الخطوة خلف الكواليس أو من قبل الشخصية.</div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="form-label">النقاط الحرجة أو المشاكل (/ Pain Points Bottlenecks)</div>
+                    <textarea id="pain-points-input" class="form-textarea" placeholder="الوصف هنا"></textarea>
+                    <div class="form-hint">تحديد ما إذا كان هناك تأخير أو مشكلة محتملة في هذه الخطوة (يتم تلوينها تلقائياً باللون الأحمر في المخطط كـ Alert).</div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="form-label">وقت التنفيذ</div>
+                    <div class="input-group">
+                        <input type="text" id="duration-val-input" class="form-input" placeholder="الوقت" style="flex-grow: 1;">
+                        <select id="duration-unit-select" class="form-select">
+                            <option value="ثانية">ثانية</option>
+                            <option value="دقيقة" selected>دقيقة</option>
+                            <option value="ساعة">ساعة</option>
+                            <option value="يوم">يوم</option>
+                            <option value="أسبوع">أسبوع</option>
+                            <option value="شهر">شهر</option>
+                        </select>
+                    </div>
+                    <div class="form-hint">أدخل متوسط الوقت المتوقع لتنفيذ هذا النشاط (مثلاً: 5 دقائق، أو ساعتان).</div>
+                </div>
+                
+                <button id="add-step-btn" class="add-btn">
+                    <span>إضافة</span>
+                    <span>+</span>
+                </button>
             </div>
-            
-            <button id="add-step-btn" class="add-btn">
-                <span>إضافة</span>
-                <span>+</span>
-            </button>
         </div>
 
         <div class="blueprint-container">
             <!-- Customer Actions -->
-            <div class="section-box ca-row">
-                <div class="label-box ca-label">
+            <div class="section-box ca-row overflow-x-auto min-h-[190px]">
+                <div class="label-box ca-label flex-shrink-0">
                     <span class="arabic-text" dir="rtl">أفعال العميل</span>
                     <span class="english-text">(Customer Actions)</span>
                 </div>
+                <div class="steps-cards-container flex gap-4 p-4 flex-1 items-center" id="cards-ca" dir="ltr"></div>
             </div>
 
             <!-- Line of Interaction -->
@@ -421,11 +612,12 @@
             </div>
 
             <!-- Frontstage -->
-            <div class="section-box fs-row">
-                <div class="label-box fs-label">
+            <div class="section-box fs-row overflow-x-auto min-h-[190px]">
+                <div class="label-box fs-label flex-shrink-0">
                     <span class="arabic-text" dir="rtl">الواجهة الأمامية / الخط الأمامي</span>
                     <span class="english-text">(Frontstage)</span>
                 </div>
+                <div class="steps-cards-container flex gap-4 p-4 flex-1 items-center" id="cards-fs" dir="ltr"></div>
             </div>
 
             <!-- Line of Visibility -->
@@ -438,11 +630,12 @@
             </div>
 
             <!-- Backstage -->
-            <div class="section-box bs-row">
-                <div class="label-box bs-label">
+            <div class="section-box bs-row overflow-x-auto min-h-[190px]">
+                <div class="label-box bs-label flex-shrink-0">
                     <span class="arabic-text" dir="rtl">الكواليس / الخط الخلفي</span>
                     <span class="english-text">(Backstage)</span>
                 </div>
+                <div class="steps-cards-container flex gap-4 p-4 flex-1 items-center" id="cards-bs" dir="ltr"></div>
             </div>
 
             <!-- Line of Internal Interaction -->
@@ -455,11 +648,12 @@
             </div>
 
             <!-- Support Processes -->
-            <div class="section-box sp-row">
-                <div class="label-box sp-label">
+            <div class="section-box sp-row overflow-x-auto min-h-[190px]">
+                <div class="label-box sp-label flex-shrink-0">
                     <span class="arabic-text" dir="rtl">العمليات والدعم</span>
                     <span class="english-text">(Support Processes / Behind the scenes)</span>
                 </div>
+                <div class="steps-cards-container flex gap-4 p-4 flex-1 items-center" id="cards-sp" dir="ltr"></div>
             </div>
 
             <!-- Actions Frame -->
@@ -490,7 +684,15 @@
                     </svg>
                     <span>تصدير كـ PDF</span>
                 </button>
-                <button class="action-btn">
+                <button class="action-btn" id="export-json-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>تصدير JSON</span>
+                </button>
+                <button class="action-btn" id="copy-link-btn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
@@ -503,18 +705,495 @@
     </div>
 
     <script>
+        // Modal Window Helpers
+        window.onModalLayerChange = function(selectEl) {
+            const val = selectEl.value;
+            const colorStyle = getLayerColorStyle(val);
+            if (val) {
+                selectEl.style.backgroundColor = colorStyle.bg;
+                selectEl.style.color = colorStyle.text;
+                selectEl.style.borderColor = colorStyle.border;
+                selectEl.style.fontWeight = 'bold';
+            } else {
+                selectEl.style.backgroundColor = '#ffffff';
+                selectEl.style.color = '#040404';
+                selectEl.style.borderColor = '#d2d6db';
+                selectEl.style.fontWeight = 'normal';
+            }
+            window.validateCharacterModalInputs();
+        };
+
+        window.validateCharacterModalInputs = function() {
+            const nameInput = document.getElementById('new-character-name-input');
+            const layerSelect = document.getElementById('new-character-layer-select');
+            const saveBtn = document.getElementById('save-character-btn');
+
+            if (!nameInput || !layerSelect || !saveBtn) return;
+
+            const nameVal = nameInput.value ? nameInput.value.trim() : '';
+            const layerVal = layerSelect.value ? layerSelect.value : '';
+
+            if (nameVal.length > 0 && layerVal !== "") {
+                saveBtn.disabled = false;
+                saveBtn.removeAttribute('disabled');
+            } else {
+                saveBtn.disabled = true;
+                saveBtn.setAttribute('disabled', 'disabled');
+            }
+        };
+
+        window.openCharacterModal = function() {
+            const modal = document.getElementById('character-modal');
+            const input = document.getElementById('new-character-name-input');
+            const select = document.getElementById('new-character-layer-select');
+
+            if (modal) {
+                modal.style.setProperty('display', 'flex', 'important');
+                if (input) {
+                    input.value = '';
+                    input.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
+                }
+                if (select) {
+                    select.value = '';
+                    window.onModalLayerChange(select);
+                }
+                window.validateCharacterModalInputs();
+                if (input) {
+                    setTimeout(() => input.focus(), 100);
+                }
+            }
+        };
+
+        window.hideCharacterModal = function() {
+            const modal = document.getElementById('character-modal');
+            if (modal) {
+                modal.style.setProperty('display', 'none', 'important');
+            }
+        };
+
+        // State Management
+        let currentBlueprint = {
+            id: null,
+            title: "",
+            characters: [
+                { name: "المستفيد", layer: "Customer Actions" },
+                { name: "المكتب الهندسي", layer: "Frontstage" },
+                { name: "موظف الخدمة", layer: "Backstage" }
+            ],
+            steps: []
+        };
+
+        let activeCharacter = "";
+
+        // Helper: Layer color styles for Character Badges & Persona Cards
+        function getLayerColorStyle(layerName) {
+            if (!layerName) return { bg: '#eaf3fe', text: '#0369a1', border: '#9fccfd', fullLayer: 'أفعال العميل (Customer Actions)' };
+            
+            if (layerName.includes('Customer Actions') || layerName.includes('أفعال العميل')) {
+                return { bg: '#eaf3fe', text: '#0369a1', border: '#9fccfd', fullLayer: 'أفعال العميل (Customer Actions)' };
+            }
+            if (layerName.includes('Frontstage') || layerName.includes('الواجهة الأمامية')) {
+                return { bg: '#eaf1ec', text: '#047857', border: '#b0d1c6', fullLayer: 'الواجهة الأمامية / الخط الأمامي (Frontstage)' };
+            }
+            if (layerName.includes('Backstage') || layerName.includes('الكواليس')) {
+                return { bg: '#fef4e6', text: '#b45309', border: '#fbcc8e', fullLayer: 'الكواليس / الخط الخلفي (Backstage)' };
+            }
+            if (layerName.includes('Support Processes') || layerName.includes('العمليات والدعم')) {
+                return { bg: '#f0f4f8', text: '#3730a3', border: '#9fc3e5', fullLayer: 'العمليات والدعم (Support Processes / Behind the scenes)' };
+            }
+            return { bg: '#eaf3fe', text: '#0369a1', border: '#9fccfd', fullLayer: 'أفعال العميل (Customer Actions)' };
+        }
+
+        // Utility: Layer to Container ID Mapping
+        function getContainerIdByLayer(layerName) {
+            if (!layerName) return 'cards-ca';
+            if (layerName.includes('Customer Actions') || layerName.includes('أفعال العميل')) return 'cards-ca';
+            if (layerName.includes('Frontstage') || layerName.includes('الواجهة الأمامية')) return 'cards-fs';
+            if (layerName.includes('Backstage') || layerName.includes('الكواليس')) return 'cards-bs';
+            if (layerName.includes('Support Processes') || layerName.includes('العمليات والدعم')) return 'cards-sp';
+            return 'cards-ca';
+        }
+
+        // Toast Helper
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            if (!toast || !toastMsg) return;
+            toastMsg.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Set Active Character & Enable/Disable Steps Form
+        function setActiveCharacter(charName) {
+            activeCharacter = charName || "";
+            const activePill = document.getElementById('active-character-pill');
+            const activeName = document.getElementById('active-character-name');
+            const formWrapper = document.getElementById('steps-form-wrapper');
+            const characterSelect = document.getElementById('character-select');
+
+            const charObj = (currentBlueprint.characters || []).find(c => (typeof c === 'string' ? c : c.name) === activeCharacter);
+            const charLayer = charObj ? (typeof charObj === 'string' ? 'Customer Actions' : charObj.layer) : '';
+            const colorStyle = getLayerColorStyle(charLayer);
+
+            if (activeCharacter) {
+                if (activePill) {
+                    activePill.style.backgroundColor = colorStyle.bg;
+                    activePill.style.color = colorStyle.text;
+                    activePill.style.borderColor = colorStyle.border;
+                    activePill.className = "px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-sm border";
+                }
+                if (activeName) activeName.textContent = activeCharacter;
+                if (formWrapper) formWrapper.classList.remove('disabled-form');
+                if (characterSelect && characterSelect.value !== activeCharacter) {
+                    characterSelect.value = activeCharacter;
+                }
+
+                // Auto-select character's layer in layer dropdown
+                if (charLayer) {
+                    const selectedText = document.getElementById('layer-selected-text');
+                    if (selectedText) {
+                        selectedText.textContent = colorStyle.fullLayer;
+                    }
+                }
+            } else {
+                if (activePill) {
+                    activePill.style.backgroundColor = '#f3f4f6';
+                    activePill.style.color = '#6b7280';
+                    activePill.style.borderColor = '#d1d5db';
+                    activePill.className = "px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 border";
+                }
+                if (activeName) activeName.textContent = "اختر شخصية أولاً";
+                if (formWrapper) formWrapper.classList.add('disabled-form');
+            }
+
+            renderCharactersListOnly();
+        }
+
+        // Normalize character entries to object format { name, layer }
+        function normalizeCharacters() {
+            if (!currentBlueprint.characters || !Array.isArray(currentBlueprint.characters)) {
+                currentBlueprint.characters = [
+                    { name: "المستفيد", layer: "Customer Actions" },
+                    { name: "المكتب الهندسي", layer: "Frontstage" }
+                ];
+            } else {
+                currentBlueprint.characters = currentBlueprint.characters.map((c, i) => {
+                    if (typeof c === 'string') {
+                        const defaultLayers = ["Customer Actions", "Frontstage", "Backstage", "Support Processes"];
+                        return { name: c, layer: defaultLayers[i % defaultLayers.length] };
+                    }
+                    return c;
+                });
+            }
+        }
+
+        // Toggle 3-Dots Character Options Menu
+        window.toggleCharacterMenu = function(event, idx) {
+            if (event) event.stopPropagation();
+            document.querySelectorAll('.char-options-menu').forEach((menu, i) => {
+                if (i !== idx) menu.classList.add('hidden');
+            });
+            const targetMenu = document.getElementById(`char-menu-${idx}`);
+            if (targetMenu) {
+                targetMenu.classList.toggle('hidden');
+            }
+        };
+
+        // Edit Character Function
+        window.editCharacter = function(idx) {
+            const charObj = currentBlueprint.characters[idx];
+            if (!charObj) return;
+
+            window.editingCharacterIndex = idx;
+            const charName = typeof charObj === 'string' ? charObj : charObj.name;
+            const charLayer = typeof charObj === 'string' ? 'Customer Actions' : charObj.layer;
+
+            const modal = document.getElementById('character-modal');
+            const nameInput = document.getElementById('new-character-name-input');
+            const layerSelect = document.getElementById('new-character-layer-select');
+
+            if (modal) {
+                modal.style.setProperty('display', 'flex', 'important');
+                if (nameInput) nameInput.value = charName;
+                if (layerSelect) {
+                    layerSelect.value = charLayer;
+                    window.onModalLayerChange(layerSelect);
+                }
+            }
+        };
+
+        // Close character menus on click outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.char-options-menu') && !e.target.closest('.char-dots-btn')) {
+                document.querySelectorAll('.char-options-menu').forEach(menu => menu.classList.add('hidden'));
+            }
+        });
+
+        // Render Character Cards in Characters Frame (Matching Image Design)
+        function renderCharactersListOnly() {
+            normalizeCharacters();
+            const listContainer = document.getElementById('characters-list-container');
+            if (!listContainer) return;
+
+            listContainer.innerHTML = '';
+            currentBlueprint.characters.forEach((cObj, idx) => {
+                const charName = cObj.name;
+                const isActive = charName === activeCharacter;
+
+                const card = document.createElement('div');
+                card.className = `relative flex items-center justify-between gap-3 px-3.5 py-1.5 rounded-xl border transition-all cursor-pointer select-none bg-white shadow-sm shrink-0 ${
+                    isActive 
+                        ? 'border-emerald-600 ring-1 ring-emerald-600 bg-emerald-50/20 text-emerald-800 font-bold' 
+                        : 'border-gray-300 hover:border-gray-400 text-gray-700 hover:bg-gray-50'
+                }`;
+
+                card.onclick = (e) => {
+                    if (e.target.closest('.char-options-menu') || e.target.closest('.char-dots-btn')) return;
+                    setActiveCharacter(charName);
+                };
+
+                const radioCircle = isActive
+                    ? `<div class="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                       </div>`
+                    : `<div class="w-4 h-4 rounded-full border-2 border-gray-300 shrink-0"></div>`;
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        ${radioCircle}
+                        <span class="text-xs font-semibold">${charName}</span>
+                    </div>
+
+                    <div class="relative">
+                        <button type="button" onclick="event.stopPropagation(); toggleCharacterMenu(event, ${idx})" class="char-dots-btn p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer" title="خيارات إضافية">
+                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                        </button>
+                        
+                        <div id="char-menu-${idx}" class="char-options-menu hidden absolute left-0 top-full mt-1 w-24 bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1 text-xs font-semibold" dir="rtl">
+                            <button type="button" onclick="event.stopPropagation(); editCharacter(${idx})" class="w-full text-right px-3 py-1.5 hover:bg-gray-100 text-gray-700 flex items-center gap-1.5 cursor-pointer">
+                                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                <span>تعديل</span>
+                            </button>
+                            <button type="button" onclick="event.stopPropagation(); removeCharacter(${idx})" class="w-full text-right px-3 py-1.5 hover:bg-red-50 text-red-600 flex items-center gap-1.5 cursor-pointer">
+                                <svg class="w-3.5 h-3.5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                <span>حذف</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                listContainer.appendChild(card);
+            });
+        }
+
+        // Render Characters List and Select Dropdown
+        function renderCharacters() {
+            normalizeCharacters();
+            renderCharactersListOnly();
+
+            const characterSelect = document.getElementById('character-select');
+            if (characterSelect) {
+                characterSelect.innerHTML = '<option value="" disabled hidden>اختر الشخصية لتفعيل الإدخال</option>';
+                currentBlueprint.characters.forEach(cObj => {
+                    const opt = document.createElement('option');
+                    opt.value = cObj.name;
+                    opt.textContent = `${cObj.name}`;
+                    characterSelect.appendChild(opt);
+                });
+                if (activeCharacter && currentBlueprint.characters.some(c => c.name === activeCharacter)) {
+                    characterSelect.value = activeCharacter;
+                } else {
+                    characterSelect.value = "";
+                }
+            }
+        }
+
+        window.removeCharacter = async function(idx) {
+            if (currentBlueprint.characters.length <= 1) {
+                alert("يجب إبقاء شخصية واحدة على الأقل في المخطط.");
+                return;
+            }
+            const removed = currentBlueprint.characters.splice(idx, 1)[0];
+            const removedName = typeof removed === 'string' ? removed : (removed ? removed.name : '');
+            if (activeCharacter === removedName) {
+                setActiveCharacter("");
+            }
+            renderCharacters();
+
+            if (removedName) {
+                try {
+                    await fetch(`/api/characters?name=${encodeURIComponent(removedName)}`, { method: 'DELETE' });
+                } catch(e) {
+                    console.error("Database delete error:", e);
+                }
+            }
+
+            if (currentBlueprint.steps.length > 0) {
+                saveBlueprintToServer(false);
+            }
+            showToast(`تم حذف الشخصية "${removedName}"`);
+        };
+
+        // Default Title Generator
+        function ensureBlueprintTitle() {
+            if (!currentBlueprint.title || !currentBlueprint.title.trim()) {
+                const randomNum = Math.floor(1000 + Math.random() * 9000);
+                currentBlueprint.title = `Blueprint no. ${randomNum}`;
+                const titleInput = document.getElementById('journey-title-input');
+                if (titleInput) titleInput.value = currentBlueprint.title;
+            }
+        }
+
+        // Save Blueprint to Server API
+        async function saveBlueprintToServer(notify = false) {
+            if (currentBlueprint.steps.length === 0 && !notify) return;
+
+            ensureBlueprintTitle();
+
+            try {
+                const response = await fetch('/api/blueprints', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentBlueprint)
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    currentBlueprint.id = result.id;
+                    if (result.title) currentBlueprint.title = result.title;
+                    
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('id', currentBlueprint.id);
+                    window.history.replaceState({}, '', url);
+
+                    if (notify) {
+                        showToast(`تم حفظ المخطط "${currentBlueprint.title}" بنجاح!`);
+                    }
+                }
+            } catch (err) {
+                console.error("Save error:", err);
+                if (notify) showToast("فشل الحفظ على السيرفر");
+            }
+        }
+
+        // Load Blueprint from Server API
+        async function loadBlueprintFromServer(id) {
+            try {
+                const response = await fetch(`/api/blueprints/${id}`);
+                if (!response.ok) throw new Error("Not found");
+                const data = await response.json();
+                currentBlueprint = data;
+                normalizeCharacters();
+                renderCharacters();
+                renderBlueprint();
+                showToast(`تم تحميل "${currentBlueprint.title}"`);
+            } catch (err) {
+                console.error("Load error:", err);
+                showToast("تعذر تحميل المخطط المطلوب");
+            }
+        }
+
+        // Render Cards in Rows with Color-Coded Persona Badges
+        function renderBlueprint() {
+            renderCharacters();
+
+            const containers = ['cards-ca', 'cards-fs', 'cards-bs', 'cards-sp'];
+            containers.forEach(cid => {
+                const el = document.getElementById(cid);
+                if (el) el.innerHTML = '';
+            });
+
+            const titleInput = document.getElementById('journey-title-input');
+            if (titleInput) {
+                titleInput.value = currentBlueprint.title || '';
+            }
+
+            currentBlueprint.steps.forEach((step, idx) => {
+                const cid = getContainerIdByLayer(step.layer);
+                const container = document.getElementById(cid);
+                if (!container) return;
+
+                const card = document.createElement('div');
+                card.className = "bg-white border border-[#d2d6db] rounded-lg p-3 shadow-sm flex flex-col gap-2 min-w-[260px] max-w-[280px] relative text-right text-xs shrink-0 transition-all hover:shadow-md";
+
+                let charHtml = '';
+                if (step.character) {
+                    const charObj = (currentBlueprint.characters || []).find(c => (typeof c === 'string' ? c : c.name) === step.character);
+                    const charLayer = charObj ? (typeof charObj === 'string' ? step.layer : charObj.layer) : step.layer;
+                    const colorStyle = getLayerColorStyle(charLayer);
+
+                    charHtml = `<div class="font-bold px-2 py-0.5 rounded text-[11px] flex items-center gap-1 w-fit border" style="background-color: ${colorStyle.bg}; color: ${colorStyle.text}; border-color: ${colorStyle.border};">
+                        <span>👤</span>
+                        <span>${step.character}</span>
+                    </div>`;
+                }
+
+                let evidenceHtml = '';
+                if (step.evidence) {
+                    evidenceHtml = `<div class="bg-gray-100 text-gray-700 rounded px-2 py-1 flex items-center gap-1 flex-wrap">
+                        <span class="font-bold text-[#040404]">الأدلة المادية:</span>
+                        <span class="bg-white border border-gray-300 rounded px-1.5 py-0.5 text-[11px]">${step.evidence}</span>
+                    </div>`;
+                }
+
+                let painHtml = '';
+                if (step.painPoints) {
+                    painHtml = `<div class="bg-red-50 text-red-700 border border-red-200 rounded p-2 flex flex-col gap-0.5">
+                        <span class="font-bold">النقاط الحرجة / المشاكل:</span>
+                        <span>${step.painPoints}</span>
+                    </div>`;
+                }
+
+                let durationHtml = '';
+                if (step.duration) {
+                    durationHtml = `<div class="text-[11px] text-gray-500 font-semibold">
+                        ⏱️ ${step.duration} ${step.timeUnit || ''}
+                    </div>`;
+                }
+
+                card.innerHTML = `
+                    <button onclick="removeStep(${idx})" class="absolute top-2 left-2 text-gray-400 hover:text-red-600 text-base font-bold leading-none p-1" title="حذف الخطوة">&times;</button>
+                    ${charHtml}
+                    <div class="font-bold text-sm text-[#0284c7] border-b pb-1 pr-4">${step.title || 'بدون عنوان'}</div>
+                    ${durationHtml}
+                    <div class="text-gray-700 leading-relaxed">${step.description || 'لا يوجد وصف'}</div>
+                    ${evidenceHtml}
+                    ${painHtml}
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // Remove Step
+        window.removeStep = function(idx) {
+            currentBlueprint.steps.splice(idx, 1);
+            renderBlueprint();
+            saveBlueprintToServer(false);
+        };
+
+        // UI Event Listeners
         const trigger = document.getElementById('layer-dropdown-trigger');
         const menu = document.getElementById('layer-dropdown-menu');
         const selectedText = document.getElementById('layer-selected-text');
+        const journeyTitleInput = document.getElementById('journey-title-input');
 
-        // Toggle dropdown
+        journeyTitleInput.addEventListener('change', () => {
+            currentBlueprint.title = journeyTitleInput.value.trim();
+            if (currentBlueprint.steps.length > 0) {
+                saveBlueprintToServer(false);
+            }
+        });
+
         trigger.addEventListener('click', (e) => {
             e.stopPropagation();
             menu.classList.toggle('hidden');
             trigger.classList.toggle('active');
         });
 
-        // Close when clicking outside
         document.addEventListener('click', () => {
             if (!menu.classList.contains('hidden')) {
                 menu.classList.add('hidden');
@@ -522,70 +1201,513 @@
             }
         });
 
-        // Handle selection for Layer
         window.selectLayer = function(name, element) {
             selectedText.textContent = name;
-            
-            // Hide all checks
             document.querySelectorAll('.dropdown-item .check-icon').forEach(icon => {
                 icon.classList.remove('block');
                 icon.classList.add('hidden');
             });
-            
-            // Show check on selected
             const check = element.querySelector('.check-icon');
-            check.classList.remove('hidden');
-            check.classList.add('block');
-            
-            // Close menu
+            if (check) {
+                check.classList.remove('hidden');
+                check.classList.add('block');
+            }
             menu.classList.add('hidden');
             trigger.classList.remove('active');
         };
 
-        // Handle adding step and evidence to datalists
+        window.submitCharacterModal = function() {
+            const input = document.getElementById('new-character-name-input');
+            const select = document.getElementById('new-character-layer-select');
+            
+            const charName = input ? input.value.trim() : '';
+            let charLayer = (select && select.value && select.value !== '') ? select.value : 'Customer Actions';
+
+            if (!charName) {
+                if (input) {
+                    input.classList.add('border-red-500', 'ring-2', 'ring-red-200');
+                    input.focus();
+                }
+                showToast("يرجى كتابة اسم الشخصية أولاً");
+                return;
+            }
+
+            window.addCharacter(charName, charLayer);
+            window.hideCharacterModal();
+        };
+
+        window.addCharacter = async function(charName, charLayer) {
+            if (!charName || !charName.trim()) return;
+            const cleanName = charName.trim();
+            const cleanLayer = charLayer || "Customer Actions";
+
+            normalizeCharacters();
+
+            if (window.editingCharacterIndex !== null && window.editingCharacterIndex !== undefined && window.editingCharacterIndex >= 0) {
+                const oldObj = currentBlueprint.characters[window.editingCharacterIndex];
+                const oldName = typeof oldObj === 'string' ? oldObj : (oldObj ? oldObj.name : '');
+                currentBlueprint.characters[window.editingCharacterIndex] = { name: cleanName, layer: cleanLayer };
+                window.editingCharacterIndex = null;
+
+                if (oldName && oldName !== cleanName) {
+                    try {
+                        await fetch(`/api/characters?name=${encodeURIComponent(oldName)}`, { method: 'DELETE' });
+                    } catch(e){}
+                }
+            } else {
+                const existingObj = currentBlueprint.characters.find(c => (typeof c === 'string' ? c === cleanName : c.name === cleanName));
+                if (existingObj) {
+                    if (typeof existingObj === 'object') {
+                        existingObj.layer = cleanLayer;
+                    }
+                } else {
+                    currentBlueprint.characters.push({ name: cleanName, layer: cleanLayer });
+                }
+            }
+
+            renderCharacters();
+            setActiveCharacter(cleanName);
+
+            // Save to SQLite Database
+            try {
+                await fetch('/api/characters', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: cleanName, layer: cleanLayer })
+                });
+            } catch (e) {
+                console.error("Database save error:", e);
+            }
+
+            if (currentBlueprint.steps.length > 0) {
+                saveBlueprintToServer(false);
+            }
+            showToast(`تم حفظ الشخصية "${cleanName}" في قاعدة البيانات!`);
+        };
+
+        window.openCharacterModal = function() {
+            const modal = document.getElementById('character-modal');
+            const input = document.getElementById('new-character-name-input');
+            const select = document.getElementById('new-character-layer-select');
+            if (modal) {
+                modal.style.setProperty('display', 'flex', 'important');
+                if (window.editingCharacterIndex === null || window.editingCharacterIndex === undefined) {
+                    if (input) {
+                        input.value = '';
+                        input.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
+                    }
+                    if (select) {
+                        select.value = '';
+                        select.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
+                        window.onModalLayerChange(select);
+                    }
+                }
+                if (input) {
+                    setTimeout(() => input.focus(), 100);
+                }
+            }
+        };
+
+        window.hideCharacterModal = function() {
+            const modal = document.getElementById('character-modal');
+            if (modal) {
+                modal.style.setProperty('display', 'none', 'important');
+            }
+        };
+
+        if (characterSelect) {
+            characterSelect.addEventListener('change', () => {
+                setActiveCharacter(characterSelect.value);
+            });
+        }
+
+        // Form Submission - Add Step
         const addStepBtn = document.getElementById('add-step-btn');
         const stepTitleInput = document.getElementById('step-title-input');
         const stepTitlesList = document.getElementById('step-titles-list');
         const evidenceInput = document.getElementById('evidence-input');
         const evidenceList = document.getElementById('evidence-list');
+        const activityDescInput = document.getElementById('activity-desc-input');
+        const painPointsInput = document.getElementById('pain-points-input');
+        const durationValInput = document.getElementById('duration-val-input');
+        const durationUnitSelect = document.getElementById('duration-unit-select');
 
         addStepBtn.addEventListener('click', () => {
-            // Handle Step Title
-            const titleVal = stepTitleInput.value.trim();
-            if (titleVal) {
-                let exists = false;
-                Array.from(stepTitlesList.options).forEach(opt => {
-                    if (opt.value === titleVal) {
-                        exists = true;
-                    }
-                });
-                
-                if (!exists) {
-                    const newOpt = document.createElement('option');
-                    newOpt.value = titleVal;
-                    stepTitlesList.appendChild(newOpt);
-                }
-                stepTitleInput.value = '';
+            if (!activeCharacter) {
+                showToast("يرجى اختيار شخصية أولاً لتنفيذ هذه الخطوة");
+                return;
             }
 
-            // Handle Physical Evidence
+            const titleVal = stepTitleInput.value.trim();
             const evidenceVal = evidenceInput.value.trim();
-            if (evidenceVal) {
-                let exists = false;
-                Array.from(evidenceList.options).forEach(opt => {
-                    if (opt.value === evidenceVal) {
-                        exists = true;
-                    }
-                });
-                
-                if (!exists) {
-                    const newOpt = document.createElement('option');
-                    newOpt.value = evidenceVal;
-                    evidenceList.appendChild(newOpt);
-                }
-                evidenceInput.value = '';
+            const descVal = activityDescInput.value.trim();
+            const painVal = painPointsInput.value.trim();
+            const durationVal = durationValInput.value.trim();
+            const unitVal = durationUnitSelect.value;
+            const layerVal = selectedText.textContent;
+
+            // Required Field Validation
+            const layerTrigger = document.getElementById('layer-dropdown-trigger');
+            if (layerTrigger) layerTrigger.classList.remove('invalid-field');
+            if (stepTitleInput) stepTitleInput.classList.remove('invalid-field');
+
+            let isValid = true;
+            const isLayerValid = layerVal && !layerVal.includes('اختيار الطبقة');
+            if (!isLayerValid) {
+                if (layerTrigger) layerTrigger.classList.add('invalid-field');
+                isValid = false;
             }
+            if (!titleVal) {
+                if (stepTitleInput) stepTitleInput.classList.add('invalid-field');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                showToast("يرجى كتابة اسم المرحلة وتحديد الطبقة أولاً");
+                return;
+            }
+
+            // Datalist Updates
+            if (titleVal && stepTitlesList) {
+                let exists = Array.from(stepTitlesList.options).some(opt => opt.value === titleVal);
+                if (!exists) {
+                    const opt = document.createElement('option');
+                    opt.value = titleVal;
+                    stepTitlesList.appendChild(opt);
+                }
+            }
+
+            if (evidenceVal && evidenceList) {
+                let exists = Array.from(evidenceList.options).some(opt => opt.value === evidenceVal);
+                if (!exists) {
+                    const opt = document.createElement('option');
+                    opt.value = evidenceVal;
+                    evidenceList.appendChild(opt);
+                }
+            }
+
+            const stepObj = {
+                id: 'step-' + Date.now(),
+                layer: layerVal,
+                character: activeCharacter,
+                title: titleVal,
+                evidence: evidenceVal,
+                description: descVal,
+                painPoints: painVal,
+                duration: durationVal,
+                timeUnit: unitVal
+            };
+
+            currentBlueprint.steps.push(stepObj);
+
+            // Ensure title if empty
+            ensureBlueprintTitle();
+
+            renderBlueprint();
+            saveBlueprintToServer(true);
+
+            // Reset Form Inputs
+            stepTitleInput.value = '';
+            evidenceInput.value = '';
+            activityDescInput.value = '';
+            painPointsInput.value = '';
+            durationValInput.value = '';
+            
+            showToast(`تمت إضافة الخطوة "${titleVal}" وحفظها في قاعدة البيانات!`);
         });
+
+        // Action Buttons: Manual Save JSON
+        const saveJsonBtn = document.getElementById('save-json-btn');
+        if (saveJsonBtn) {
+            saveJsonBtn.addEventListener('click', () => {
+                ensureBlueprintTitle();
+                saveBlueprintToServer(true);
+            });
+        }
+
+        // Action Buttons: Export JSON File
+        const exportJsonBtn = document.getElementById('export-json-btn');
+        if (exportJsonBtn) {
+            exportJsonBtn.addEventListener('click', () => {
+                ensureBlueprintTitle();
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentBlueprint, null, 2));
+                const anchor = document.createElement('a');
+                anchor.setAttribute("href", dataStr);
+                anchor.setAttribute("download", (currentBlueprint.title.replace(/\s+/g, '_')) + '.json');
+                document.body.appendChild(anchor);
+                anchor.click();
+                anchor.remove();
+            });
+        }
+
+        // Action Buttons: Import JSON File
+        const importJsonBtn = document.getElementById('import-json-btn');
+        const importJsonFile = document.getElementById('import-json-file');
+
+        if (importJsonBtn && importJsonFile) {
+            importJsonBtn.addEventListener('click', () => importJsonFile.click());
+
+            importJsonFile.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    try {
+                        const imported = JSON.parse(evt.target.result);
+                        if (imported && Array.isArray(imported.steps)) {
+                            currentBlueprint = imported;
+                            if (!currentBlueprint.id) {
+                                currentBlueprint.id = 'bp_' + Date.now();
+                            }
+                            renderBlueprint();
+                            saveBlueprintToServer(true);
+                            showToast("تم استيراد المخطط بنجاح!");
+                        } else {
+                            alert("ملف JSON غير صالح، تأكد من الهيكل.");
+                        }
+                    } catch (err) {
+                        alert("خطأ في قراءة ملف JSON: " + err.message);
+                    }
+                };
+                reader.readAsText(file);
+                e.target.value = '';
+            });
+        }
+        // Action Buttons: Copy Shareable Link ("نسخ الرابط")
+        const copyLinkBtn = document.getElementById('copy-link-btn');
+        if (copyLinkBtn) {
+            copyLinkBtn.addEventListener('click', async () => {
+                if (!currentBlueprint.id) {
+                    ensureBlueprintTitle();
+                    await saveBlueprintToServer(false);
+                }
+
+                const url = new URL(window.location.href);
+                url.searchParams.set('id', currentBlueprint.id);
+                
+                try {
+                    await navigator.clipboard.writeText(url.toString());
+                    showToast("تم نسخ رابط المخطط بنجاح إلى الحافظة!");
+                } catch (e) {
+                    prompt("نسخ الرابط الخاص بالمخطط:", url.toString());
+                }
+            });
+        }
+
+        // Side Panel Drawer: Saved Blueprints (المخططات المحفوظة)
+        window.renderSidebarBlueprints = async function() {
+            const listContainer = document.getElementById('sidebar-blueprints-list');
+            if (!listContainer) return;
+
+            listContainer.innerHTML = '<div class="text-center py-6 text-gray-400 text-xs">جاري التحميل من قاعدة البيانات...</div>';
+
+            try {
+                const response = await fetch('/api/blueprints');
+                const list = await response.json();
+
+                if (!list || list.length === 0) {
+                    listContainer.innerHTML = '<div class="text-center py-6 text-gray-400 text-xs">لا يوجد مخططات محفوظة في قاعدة البيانات</div>';
+                    return;
+                }
+
+                listContainer.innerHTML = '';
+                list.forEach(item => {
+                    const isCurrent = currentBlueprint.id === item.id;
+                    const dateStr = item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('ar-SA') : '';
+
+                    const itemCard = document.createElement('div');
+                    itemCard.className = `p-3 rounded-xl border transition-all flex flex-col gap-2 ${
+                        isCurrent 
+                            ? 'bg-blue-50/70 border-blue-500 shadow-sm' 
+                            : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm'
+                    }`;
+
+                    itemCard.innerHTML = `
+                        <div class="flex justify-between items-start gap-2">
+                            <a href="/?id=${item.id}" onclick="event.preventDefault(); window.openFromSidebar('${item.id}');" class="font-bold text-xs ${isCurrent ? 'text-blue-700' : 'text-gray-800 hover:text-blue-600'} flex-1 leading-snug cursor-pointer">
+                                📌 ${item.title}
+                            </a>
+                            ${isCurrent ? '<span class="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded-full shrink-0">نشط</span>' : ''}
+                        </div>
+
+                        <div class="flex items-center justify-between text-[11px] text-gray-500 pt-1 border-t border-gray-100">
+                            <span>${item.stepCount} خطوة &bull; ${dateStr}</span>
+                            
+                            <div class="flex items-center gap-1">
+                                <button type="button" onclick="window.copyBlueprintLink('${item.id}')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-[10px] font-semibold cursor-pointer" title="نسخ رابط المخطط">
+                                    🔗 رابط
+                                </button>
+                                <button type="button" onclick="window.deleteFromSidebar('${item.id}', '${item.title}')" class="px-1.5 py-1 text-red-500 hover:bg-red-50 rounded text-[10px] font-bold cursor-pointer" title="حذف">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    listContainer.appendChild(itemCard);
+                });
+            } catch (err) {
+                listContainer.innerHTML = '<div class="text-center py-6 text-red-500 text-xs">تعذر تحميل قائمة المخططات</div>';
+            }
+        };
+
+        window.toggleSavedBlueprintsSidebar = function() {
+            const sidebar = document.getElementById('saved-blueprints-sidebar');
+            if (sidebar) {
+                const isHidden = sidebar.classList.contains('translate-x-full');
+                if (isHidden) {
+                    sidebar.classList.remove('translate-x-full');
+                    window.renderSidebarBlueprints();
+                } else {
+                    sidebar.classList.add('translate-x-full');
+                }
+            }
+        };
+
+        window.openFromSidebar = function(id) {
+            loadBlueprintFromServer(id);
+            const url = new URL(window.location.href);
+            url.searchParams.set('id', id);
+            window.history.replaceState({}, '', url);
+            window.renderSidebarBlueprints();
+            showToast("تم فتح المخطط بنجاح!");
+        };
+
+        window.copyBlueprintLink = function(id) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('id', id);
+            navigator.clipboard.writeText(url.toString()).then(() => {
+                showToast("تم نسخ رابط المخطط بنجاح إلى الحافظة!");
+            }).catch(() => {
+                prompt("رابط المخطط:", url.toString());
+            });
+        };
+
+        window.deleteFromSidebar = async function(id, title) {
+            if (!confirm(`هل أنت تأكد من حذف المخطط "${title}"؟`)) return;
+            try {
+                const res = await fetch(`/api/blueprints/${id}`, { method: 'DELETE' });
+                const result = await res.json();
+                if (result.success) {
+                    showToast(`تم حذف المخطط "${title}"`);
+                    window.renderSidebarBlueprints();
+                    if (currentBlueprint.id === id) {
+                        currentBlueprint = { id: null, title: "", characters: [], steps: [] };
+                        renderBlueprint();
+                    }
+                }
+            } catch (err) {
+                showToast("تعذر حذف المخطط");
+            }
+        };
+
+        window.createNewBlueprint = function() {
+            currentBlueprint = { id: null, title: "", characters: [], steps: [] };
+            const url = new URL(window.location.href);
+            url.searchParams.delete('id');
+            window.history.replaceState({}, '', url);
+            renderBlueprint();
+            window.renderSidebarBlueprints();
+            showToast("تم فتح مخطط جديد فارغ");
+        };
+
+        // Modal ("سجل الرحلات") Logic
+        const historyBtn = document.getElementById('history-btn');
+        const historyModal = document.getElementById('history-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const historyListContainer = document.getElementById('history-list-container');
+        const newBlueprintBtn = document.getElementById('new-blueprint-btn');
+
+        async function fetchHistoryList() {
+            historyListContainer.innerHTML = '<div class="text-center py-6 text-gray-500">جاري تحميل السجل...</div>';
+            try {
+                const response = await fetch('/api/blueprints');
+                const list = await response.json();
+                
+                if (!list || list.length === 0) {
+                    historyListContainer.innerHTML = '<div class="text-center py-6 text-gray-500">لا يوجد مخططات محفوظة حتى الآن</div>';
+                    return;
+                }
+
+                historyListContainer.innerHTML = '';
+                list.forEach(item => {
+                    const el = document.createElement('div');
+                    el.className = "bg-white border rounded-lg p-3 flex justify-between items-center shadow-sm hover:border-blue-300 transition-colors";
+                    
+                    const dateStr = item.updatedAt ? new Date(item.updatedAt).toLocaleString('ar-SA') : '';
+
+                    el.innerHTML = `
+                        <div class="flex flex-col gap-0.5">
+                            <span class="font-bold text-gray-900">${item.title}</span>
+                            <span class="text-xs text-gray-500">${item.stepCount} خطوة &bull; آخر تعديل: ${dateStr}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="openFromHistory('${item.id}')" class="bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold px-3 py-1.5 rounded-lg text-xs">فتح</button>
+                            <button onclick="deleteFromHistory('${item.id}', '${item.title}')" class="bg-red-50 text-red-600 hover:bg-red-100 font-bold px-2 py-1.5 rounded-lg text-xs">حذف</button>
+                        </div>
+                    `;
+                    historyListContainer.appendChild(el);
+                });
+            } catch (err) {
+                historyListContainer.innerHTML = '<div class="text-center py-6 text-red-500">فشل تحميل السجل من الخادم</div>';
+            }
+        }
+
+        if (historyBtn) {
+            historyBtn.addEventListener('click', () => {
+                historyModal.style.display = 'flex';
+                fetchHistoryList();
+            });
+        }
+
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => {
+                historyModal.style.display = 'none';
+            });
+        }
+
+        if (newBlueprintBtn) {
+            newBlueprintBtn.addEventListener('click', () => {
+                window.createNewBlueprint();
+                historyModal.style.display = 'none';
+            });
+        }
+
+        async function loadCharactersFromDatabase() {
+            try {
+                const res = await fetch('/api/characters');
+                if (res.ok) {
+                    const dbChars = await res.json();
+                    if (Array.isArray(dbChars) && dbChars.length > 0) {
+                        currentBlueprint.characters = dbChars;
+                        renderCharacters();
+                    }
+                }
+            } catch (err) {
+                console.error("Error loading characters from database:", err);
+            }
+        }
+
+        // Initialize on Page Load
+        (async function init() {
+            const addBtn = document.getElementById('add-character-btn');
+            if (addBtn) {
+                addBtn.onclick = function(e) {
+                    if (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                    window.openCharacterModal();
+                };
+            }
+            await loadCharactersFromDatabase();
+            renderCharacters();
+            const urlParams = new URLSearchParams(window.location.search);
+            const bpId = urlParams.get('id');
+            if (bpId) {
+                await loadBlueprintFromServer(bpId);
+            }
+        })();
     </script>
 </body>
 </html>
