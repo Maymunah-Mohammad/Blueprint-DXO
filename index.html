@@ -8,55 +8,99 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
         
-        body {
-            font-family: 'Cairo', system-ui, -apple-system, sans-serif;
-            background-color: #ffffff;
-            padding: 2rem;
+        html, body {
+            height: 100%;
+            width: 100%;
             margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+            background-color: #f8fafc;
+        }
+
+        #app-viewport {
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            box-sizing: border-box;
+            overflow: hidden;
+            gap: 10px;
         }
 
         /* Layouts */
         .main-layout {
+            flex: 1;
+            min-height: 0;
+            min-width: 0;
             display: flex;
-            gap: 24px;
+            gap: 12px;
             width: 100%;
-            align-items: stretch;
+            overflow: hidden;
+            direction: rtl;
+        }
+
+        .center-workspace {
+            flex: 1;
+            min-width: 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Blueprint Frame - HORIZONTAL AND VERTICAL SCROLLING */
+        .blueprint-frame {
+            flex: 1;
+            min-width: 0;
+            min-height: 0;
+            overflow: auto !important; /* BOTH HORIZONTAL AND VERTICAL SCROLLS */
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .blueprint-container {
-            width: 100%;
             display: flex;
             flex-direction: column;
             gap: 12px;
+            min-width: max-content; /* Guarantees horizontal scrolling when cards extend right */
         }
 
         /* Sidebar Steps Frame */
         .steps-frame {
-            width: 319px;
+            width: 320px;
             flex-shrink: 0;
+            height: 100%;
+            overflow-y: auto;
             background-color: #f1f6fb;
-            border-radius: 8px;
-            padding: 24px 16px;
+            border-radius: 12px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            box-shadow: 0 1px 2px 0 rgba(16, 24, 40, 0.04);
+            gap: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
             direction: rtl;
+            box-sizing: border-box;
         }
         .steps-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             color: #040404;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             text-align: right;
         }
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
         .form-label {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             color: #040404;
         }
@@ -65,7 +109,7 @@
             border: 1px solid #d2d6db;
             border-radius: 8px;
             padding: 8px 12px;
-            font-size: 14px;
+            font-size: 13px;
             font-family: inherit;
             background-color: #ffffff;
             outline: none;
@@ -97,10 +141,10 @@
         }
         .form-textarea {
             resize: vertical;
-            min-height: 80px;
+            min-height: 70px;
         }
         .form-hint {
-            font-size: 12px;
+            font-size: 11px;
             color: #5a5a5a;
             line-height: 1.4;
         }
@@ -121,78 +165,47 @@
             margin-top: auto;
         }
 
-        /* Custom Dropdown Styles */
-        .custom-select-trigger {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            border: 1px solid #d2d6db;
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-size: 14px;
-            background-color: #ffffff;
-            color: #040404;
-        }
-        
-        .custom-select-trigger.active {
-            border-color: #276749; /* Dark green outline */
-            box-shadow: 0 0 0 3px #c6f6d5; /* Light green halo */
-        }
-        
-        .custom-select-trigger.active svg {
-            transform: rotate(180deg);
-        }
-        
-        .dropdown-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 12px;
-            cursor: pointer;
-            border-bottom: 1px solid #ffffff;
-            font-size: 14px;
-            color: #040404;
-        }
-        .dropdown-item:last-child {
-            border-bottom: none;
-        }
-
         /* Actions Frame */
         .actions-frame {
-            height: 54px;
+            height: 52px;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: flex-start;
             gap: 12px;
-            margin-bottom: 8px;
-            background-color: #FCFDFE;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 0 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         /* Header Frame */
         .header-frame {
-            height: 56px;
+            height: 50px;
+            flex-shrink: 0;
             background-color: #f1f6fb;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 16px;
             padding: 0 16px;
-            border-radius: 8px;
-            margin-bottom: 16px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
         }
 
         /* Characters Frame */
         .characters-frame {
-            min-height: 56px;
-            background-color: #f1f6fb;
+            min-height: 50px;
+            flex-shrink: 0;
+            background-color: #ffffff;
             display: flex;
             align-items: center;
             justify-content: flex-start;
             gap: 12px;
-            padding: 10px 16px;
-            border-radius: 8px;
-            margin-bottom: 24px;
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
             direction: rtl;
         }
         
@@ -343,37 +356,7 @@
         }
     </style>
 </head>
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-5 right-5 bg-gray-900 text-white text-sm px-4 py-3 rounded-lg shadow-lg hidden transition-opacity duration-300 z-50 flex items-center gap-2" dir="rtl">
-        <span id="toast-message">تم الحفظ بنجاح</span>
-    </div>
-
-    <!-- History Modal ("سجل الرحلات") -->
-    <div id="history-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 items-center justify-center p-4" style="display: none;" dir="rtl">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]">
-            <div class="p-4 border-b flex justify-between items-center bg-[#f1f6fb]">
-                <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
-                        <line x1="9" y1="3" x2="9" y2="21"></line>
-                        <line x1="15" y1="3" x2="15" y2="21"></line>
-                    </svg>
-                    سجل المخططات المحفوظة
-                </h3>
-                <button id="close-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl font-bold p-1 leading-none">&times;</button>
-            </div>
-            <div id="history-list-container" class="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
-                <!-- Dynamic history items loaded here -->
-            </div>
-            <div class="p-3 border-t bg-gray-50 flex justify-between items-center text-xs text-gray-500">
-                <span>يتم حفظ المخططات كملفات JSON في خادم الموقع تلقائياً</span>
-                <button id="new-blueprint-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1">
-                    <span>+ مخطط جديد</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
+<body>
     <!-- Floating Frame: Add Character Modal (Middle of screen, transparent dark background) -->
     <div id="character-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4" style="display: none;" dir="rtl" onclick="if(event.target===this) hideCharacterModal()">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col border border-gray-100 animate-in fade-in zoom-in-95 duration-150 relative" onclick="event.stopPropagation()">
@@ -385,7 +368,7 @@
                         <line x1="20" y1="8" x2="20" y2="14"></line>
                         <line x1="17" y1="11" x2="23" y2="11"></line>
                     </svg>
-                    إضافة شخصية جديدة
+                    <span>إضافة شخصية جديدة</span>
                 </h3>
                 <button id="close-character-modal-btn" onclick="document.getElementById('character-modal').style.display='none'; document.getElementById('character-modal').style.setProperty('display','none','important');" class="text-gray-400 hover:text-gray-800 text-2xl font-bold p-1 leading-none transition-colors cursor-pointer" type="button">&times;</button>
             </div>
@@ -416,291 +399,286 @@
         </div>
     </div>
 
-    <!-- Side Panel: Saved Blueprints Drawer (سجل الرحلات) -->
-    <div id="saved-blueprints-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white border-l border-gray-200 shadow-2xl z-[99999] flex flex-col transition-transform duration-300 transform translate-x-full" dir="rtl">
-        <!-- Sidebar Header -->
-        <div class="p-4 border-b bg-[#f1f6fb] flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <div id="app-viewport">
+        <!-- Toast Notification -->
+        <div id="toast" class="fixed bottom-5 right-5 bg-gray-900 text-white text-sm px-4 py-3 rounded-lg shadow-lg hidden transition-opacity duration-300 z-50 flex items-center gap-2" dir="rtl">
+            <span id="toast-message">تم الحفظ بنجاح</span>
+        </div>
+
+        <!-- Side Panel: Saved Blueprints Drawer (سجل الرحلات) -->
+        <div id="saved-blueprints-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white border-l border-gray-200 shadow-2xl z-[99999] flex flex-col transition-transform duration-300 transform translate-x-full" dir="rtl">
+            <div class="p-4 border-b bg-[#f1f6fb] flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
+                        <line x1="9" y1="3" x2="9" y2="21"></line>
+                        <line x1="15" y1="3" x2="15" y2="21"></line>
+                    </svg>
+                    <h3 class="font-bold text-sm text-gray-800">سجل الرحلات والمخططات</h3>
+                </div>
+                <button onclick="toggleSavedBlueprintsSidebar()" class="text-gray-400 hover:text-gray-700 text-xl font-bold p-1 leading-none cursor-pointer" type="button">&times;</button>
+            </div>
+
+            <div class="p-3 border-b bg-gray-50 flex justify-between items-center">
+                <button onclick="window.createNewBlueprint()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer" type="button">
+                    <span>+</span>
+                    <span>مخطط جديد</span>
+                </button>
+            </div>
+
+            <div id="sidebar-blueprints-list" class="flex-1 overflow-y-auto p-3 flex flex-col gap-2.5">
+                <!-- Dynamic blueprint items loaded here -->
+            </div>
+
+            <div class="p-3 border-t bg-gray-50 text-[11px] text-gray-500 text-center">
+                مخزنة في قاعدة البيانات SQLite
+            </div>
+        </div>
+
+        <!-- Header Frame (Top - Fixed Height) -->
+        <div class="header-frame">
+            <button id="history-btn" onclick="toggleSavedBlueprintsSidebar()" class="action-btn cursor-pointer" type="button">
+                <span dir="rtl">سجل الرحلات</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
                     <line x1="9" y1="3" x2="9" y2="21"></line>
                     <line x1="15" y1="3" x2="15" y2="21"></line>
                 </svg>
-                <h3 class="font-bold text-sm text-gray-800">سجل الرحلات والمخططات</h3>
+            </button>
+            <div class="header-input-container">
+                <input type="text" id="journey-title-input" class="header-input" placeholder="اسم المخطط" dir="rtl">
             </div>
-            <button onclick="toggleSavedBlueprintsSidebar()" class="text-gray-400 hover:text-gray-700 text-xl font-bold p-1 leading-none cursor-pointer" type="button">&times;</button>
         </div>
 
-        <!-- Create New Blueprint Button -->
-        <div class="p-3 border-b bg-gray-50 flex justify-between items-center">
-            <button onclick="window.createNewBlueprint()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer" type="button">
+        <!-- Characters Frame (Below Header - Fixed Height) -->
+        <div class="characters-frame flex items-center justify-between gap-4 p-3 bg-white border-b border-gray-200" id="characters-frame" dir="rtl">
+            <div class="flex items-center gap-3 overflow-x-auto flex-1 py-1">
+                <span class="font-bold text-xs text-gray-700 shrink-0 whitespace-nowrap">الشخصيات والأدوار</span>
+                <div class="flex items-center gap-2 overflow-x-auto py-1 flex-1" id="characters-list-container">
+                    <!-- Dynamic character cards -->
+                </div>
+            </div>
+
+            <button id="add-character-btn" onclick="window.editingCharacterIndex=null; document.getElementById('character-modal').style.display='flex'; document.getElementById('character-modal').style.setProperty('display','flex','important'); if(window.openCharacterModal) window.openCharacterModal();" class="px-3.5 py-1.5 border border-gray-300 rounded-xl bg-white hover:bg-gray-50 text-gray-700 font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer shrink-0" type="button">
                 <span>+</span>
-                <span>مخطط جديد</span>
+                <span dir="rtl">إضافة شخصية</span>
             </button>
         </div>
 
-        <!-- Sidebar Blueprints List -->
-        <div id="sidebar-blueprints-list" class="flex-1 overflow-y-auto p-3 flex flex-col gap-2.5">
-            <!-- Dynamic blueprint items loaded here -->
-        </div>
+        <!-- Main Layout (Flex-1 occupies remaining height) -->
+        <div class="main-layout" dir="rtl">
+            <!-- Center Workspace (Flex-1) on Right: holding Blueprint Frame + Actions Frame -->
+            <div class="center-workspace">
+                <!-- Blueprint Frame: SCROLLS HORIZONTALLY AND VERTICALLY! -->
+                <div class="blueprint-frame" id="blueprint-frame">
+                    <div class="blueprint-container">
+                        <!-- Customer Actions -->
+                        <div class="section-box ca-row overflow-x-auto min-h-[190px]">
+                            <div class="label-box ca-label flex-shrink-0">
+                                <span class="arabic-text" dir="rtl">أفعال العميل</span>
+                                <span class="english-text">(Customer Actions)</span>
+                            </div>
+                            <div class="steps-cards-container flex gap-4 p-4 flex-1 items-center" id="cards-ca" dir="ltr"></div>
+                        </div>
 
-        <!-- Sidebar Footer -->
-        <div class="p-3 border-t bg-gray-50 text-[11px] text-gray-500 text-center">
-            مخزنة في قاعدة البيانات SQLite
-        </div>
-    </div>
+                        <!-- Line of Interaction -->
+                        <div class="line-container">
+                            <div class="line-text">
+                                <span dir="rtl">خط التفاعل</span>
+                                <span>(LINE OF INTERACTION)</span>
+                            </div>
+                            <div class="line-dash"></div>
+                        </div>
 
-    <!-- Header Frame -->
-    <div class="header-frame">
-        <button id="history-btn" onclick="toggleSavedBlueprintsSidebar()" class="action-btn cursor-pointer" type="button">
-            <span dir="rtl">سجل الرحلات</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
-                <line x1="9" y1="3" x2="9" y2="21"></line>
-                <line x1="15" y1="3" x2="15" y2="21"></line>
-            </svg>
-        </button>
-        <div class="header-input-container">
-            <input type="text" id="journey-title-input" class="header-input" placeholder="اسم المخطط" dir="rtl">
-        </div>
-    </div>
+                        <!-- Frontstage -->
+                        <div class="section-box fs-row overflow-x-auto min-h-[190px]">
+                            <div class="label-box fs-label flex-shrink-0">
+                                <span class="arabic-text" dir="rtl">الواجهة الأمامية / الخط الأمامي</span>
+                                <span class="english-text">(Frontstage)</span>
+                            </div>
+                            <div class="steps-cards-container flex gap-4 p-4 flex-1 items-center" id="cards-fs" dir="ltr"></div>
+                        </div>
 
-    <!-- Characters Frame -->
-    <div class="characters-frame flex items-center justify-between gap-4 p-3 bg-white border-b border-gray-200" id="characters-frame" dir="rtl">
-        <div class="flex items-center gap-3 overflow-x-auto flex-1 py-1">
-            <span class="font-bold text-xs text-gray-700 shrink-0 whitespace-nowrap">الشخصيات والأدوار</span>
-            <div class="flex items-center gap-2 overflow-x-auto py-1 flex-1" id="characters-list-container">
-                <!-- Dynamic character cards with radio buttons and 3-dots menus -->
-            </div>
-        </div>
+                        <!-- Line of Visibility -->
+                        <div class="line-container">
+                            <div class="line-text">
+                                <span dir="rtl">خط الرؤية</span>
+                                <span>(LINE OF VISIBILITY)</span>
+                            </div>
+                            <div class="line-dash"></div>
+                        </div>
 
-        <button id="add-character-btn" onclick="window.editingCharacterIndex=null; document.getElementById('character-modal').style.display='flex'; document.getElementById('character-modal').style.setProperty('display','flex','important'); if(window.openCharacterModal) window.openCharacterModal();" class="px-3.5 py-1.5 border border-gray-300 rounded-xl bg-white hover:bg-gray-50 text-gray-700 font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer shrink-0" type="button">
-            <span>+</span>
-            <span dir="rtl">إضافة شخصية</span>
-        </button>
-    </div>
+                        <!-- Backstage -->
+                        <div class="section-box bs-row overflow-x-auto min-h-[190px]">
+                            <div class="label-box bs-label flex-shrink-0">
+                                <span class="arabic-text" dir="rtl">الكواليس / الخط الخلفي</span>
+                                <span class="english-text">(Backstage)</span>
+                            </div>
+                            <div class="steps-cards-container flex gap-4 p-4 flex-1 items-center" id="cards-bs" dir="ltr"></div>
+                        </div>
 
-    <div class="main-layout">
-        
-        <!-- Steps Frame -->
-        <div class="steps-frame">
-            <div class="steps-title flex justify-between items-center border-b border-gray-200 pb-2.5 mb-2">
-                <span>إدراج الخطوات</span>
-                <!-- Active Character Pill Badge -->
-                <div id="active-character-pill" class="bg-gray-100 text-gray-500 border border-gray-300 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5">
-                    <span>👤</span>
-                    <span id="active-character-name">اختر شخصية أولاً</span>
+                        <!-- Line of Internal Interaction -->
+                        <div class="line-container">
+                            <div class="line-text">
+                                <span dir="rtl">خط التفاعل الداخلي</span>
+                                <span>(LINE OF INTERNAL INTERACTION)</span>
+                            </div>
+                            <div class="line-dash"></div>
+                        </div>
+
+                        <!-- Support Processes -->
+                        <div class="section-box sp-row overflow-x-auto min-h-[190px]">
+                            <div class="label-box sp-label flex-shrink-0">
+                                <span class="arabic-text" dir="rtl">العمليات والدعم</span>
+                                <span class="english-text">(Support Processes / Behind the scenes)</span>
+                            </div>
+                            <div class="steps-cards-container flex gap-4 p-4 flex-1 items-center" id="cards-sp" dir="ltr"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions Frame: Fixed height at bottom -->
+                <div class="actions-frame" id="actions-frame" dir="rtl">
+                    <button class="action-btn" type="button">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="9" y1="3" x2="9" y2="21"></line>
+                            <path d="M13 8l4 4-4 4"></path>
+                        </svg>
+                        <span>عرض المخطط التفاعلي</span>
+                    </button>
+                    <button class="action-btn" type="button">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        <span>تصدير كصورة</span>
+                    </button>
+                    <button class="action-btn" type="button">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        <span>تصدير كـ PDF</span>
+                    </button>
+                    <button class="action-btn" id="export-json-btn" type="button">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>تصدير JSON</span>
+                    </button>
+                    <button class="action-btn" id="copy-link-btn" type="button">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg>
+                        <span>نسخ الرابط</span>
+                    </button>
                 </div>
             </div>
-            
-            <div class="form-group">
-                <div class="form-label">الشخصية أو المنفذ (Persona / Character) <span class="required-star">*</span></div>
-                <select id="character-select" class="form-select" dir="rtl">
-                    <option value="" disabled selected hidden>اختر الشخصية لتفعيل الإدخال</option>
-                    <!-- Populated dynamically from Characters Frame -->
-                </select>
-                <div class="form-hint">اختر شخصية من القائمة أو أضف شخصية جديدة من الأعلى.</div>
-            </div>
 
-            <!-- Steps Form Inputs Wrapper (Disabled until character is selected) -->
-            <div id="steps-form-wrapper" class="disabled-form flex flex-col gap-4">
-                <div class="form-group relative">
-                    <div class="form-label">الطبقة أو المسار (Layer / Tier) <span class="required-star">*</span></div>
-                    <!-- Custom Select Trigger -->
-                    <div id="layer-dropdown-trigger" class="custom-select-trigger cursor-pointer">
-                        <span id="layer-selected-text">اختيار الطبقة (اختر مما يلي)</span>
-                        <svg id="layer-chevron" width="12" height="8" viewBox="0 0 12 8" fill="none" stroke="#040404" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M1 1.5L6 6.5L11 1.5"></path>
-                        </svg>
+            <!-- Sidebar: Steps Frame (Width 320px, Full Height) on Left -->
+            <div class="steps-frame" id="steps-frame">
+                <div class="steps-title flex justify-between items-center border-b border-gray-200 pb-2.5 mb-2">
+                    <span>إدراج الخطوات</span>
+                    <div id="active-character-pill" class="bg-gray-100 text-gray-500 border border-gray-300 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5">
+                        <span>👤</span>
+                        <span id="active-character-name">اختر شخصية أولاً</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="form-label">الشخصية أو المنفذ (Persona / Character) <span class="required-star">*</span></div>
+                    <select id="character-select" class="form-select" dir="rtl">
+                        <option value="" disabled selected hidden>اختر الشخصية لتفعيل الإدخال</option>
+                    </select>
+                    <div class="form-hint">اختر شخصية من القائمة أو أضف شخصية جديدة من الأعلى.</div>
+                </div>
+
+                <div id="steps-form-wrapper" class="disabled-form flex flex-col gap-4">
+                    <div class="form-group relative">
+                        <div class="form-label">الطبقة أو المسار (Layer / Tier) <span class="required-star">*</span></div>
+                        <div id="layer-dropdown-trigger" class="custom-select-trigger cursor-pointer">
+                            <span id="layer-selected-text">اختيار الطبقة (اختر مما يلي)</span>
+                            <svg id="layer-chevron" width="12" height="8" viewBox="0 0 12 8" fill="none" stroke="#040404" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 1.5L6 6.5L11 1.5"></path>
+                            </svg>
+                        </div>
+                        
+                        <div id="layer-dropdown-menu" class="absolute left-0 right-0 top-[68px] bg-white border border-[#d2d6db] rounded-lg shadow-md overflow-hidden z-10 flex flex-col hidden">
+                            <div class="dropdown-item ca-row" onclick="selectLayer('أفعال العميل (Customer Actions)', this)">
+                                <span>أفعال العميل (Customer Actions)</span>
+                                <svg class="check-icon text-green-600 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                            <div class="dropdown-item fs-row" onclick="selectLayer('الواجهة الأمامية / الخط الأمامي (Frontstage)', this)">
+                                <span>الواجهة الأمامية / الخط الأمامي (Frontstage)</span>
+                                <svg class="check-icon text-green-600 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                            <div class="dropdown-item bs-row" onclick="selectLayer('الكواليس / الخط الخلفي (Backstage)', this)">
+                                <span>الكواليس / الخط الخلفي (Backstage)</span>
+                                <svg class="check-icon text-green-600 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                            <div class="dropdown-item sp-row" onclick="selectLayer('العمليات والدعم (Support Processes / Behind the scenes)', this)">
+                                <span>العمليات والدعم (Support Processes / Behind the scenes)</span>
+                                <svg class="check-icon text-green-600 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                        </div>
                     </div>
                     
-                    <!-- Dropdown Menu -->
-                    <div id="layer-dropdown-menu" class="absolute left-0 right-0 top-[68px] bg-white border border-[#d2d6db] rounded-lg shadow-md overflow-hidden z-10 flex flex-col hidden">
-                        <!-- Option 1 -->
-                        <div class="dropdown-item ca-row" onclick="selectLayer('أفعال العميل (Customer Actions)', this)">
-                            <span>أفعال العميل (Customer Actions)</span>
-                            <svg class="check-icon text-green-600 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        </div>
-                        <!-- Option 2 -->
-                        <div class="dropdown-item fs-row" onclick="selectLayer('الواجهة الأمامية / الخط الأمامي (Frontstage)', this)">
-                            <span>الواجهة الأمامية / الخط الأمامي (Frontstage)</span>
-                            <svg class="check-icon text-green-600 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        </div>
-                        <!-- Option 3 -->
-                        <div class="dropdown-item bs-row" onclick="selectLayer('الكواليس / الخط الخلفي (Backstage)', this)">
-                            <span>الكواليس / الخط الخلفي (Backstage)</span>
-                            <svg class="check-icon text-green-600 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        </div>
-                        <!-- Option 4 -->
-                        <div class="dropdown-item sp-row" onclick="selectLayer('العمليات والدعم (Support Processes / Behind the scenes)', this)">
-                            <span>العمليات والدعم (Support Processes / Behind the scenes)</span>
-                            <svg class="check-icon text-green-600 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        </div>
+                    <div class="form-group">
+                        <div class="form-label">اسم المرحلة (Step / Action Title) <span class="required-star">*</span></div>
+                        <input type="text" id="step-title-input" class="form-input" list="step-titles-list" placeholder="إدراج أو اختيار" dir="rtl">
+                        <datalist id="step-titles-list"></datalist>
+                        <div class="form-hint">كتابة اسم الخطوة باختصار (مثلاً: "تصفح القائمة"، "إتمام الدفع").</div>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <div class="form-label">اسم المرحلة (Step / Action Title) <span class="required-star">*</span></div>
-                    <input type="text" id="step-title-input" class="form-input" list="step-titles-list" placeholder="إدراج أو اختيار" dir="rtl">
-                    <datalist id="step-titles-list">
-                        <!-- Dynamic options will be added here -->
-                    </datalist>
-                    <div class="form-hint">كتابة اسم الخطوة باختصار (مثلاً: "تصفح القائمة"، "إتمام الدفع").</div>
-                </div>
-                
-                <div class="form-group">
-                    <div class="form-label">الأدلة المادية</div>
-                    <input type="text" id="evidence-input" class="form-input" list="evidence-list" placeholder="إدراج أو اختيار" dir="rtl">
-                    <datalist id="evidence-list">
-                        <!-- Dynamic options will be added here -->
-                    </datalist>
-                    <div class="form-hint">تحديد الأجهزة أو المستندات المستخدمة في الورقية، موقع الويب، جهاز الدفع POS).</div>
-                </div>
-                
-                <div class="form-group">
-                    <div class="form-label">وصف النشاط أو العملية (Activity Description) <span class="required-star">*</span></div>
-                    <textarea id="activity-desc-input" class="form-textarea" placeholder="الوصف هنا"></textarea>
-                    <div class="form-hint">شرح تفصيلي لما يحدث في هذه الخطوة خلف الكواليس أو من قبل الشخصية.</div>
-                </div>
-                
-                <div class="form-group">
-                    <div class="form-label">النقاط الحرجة أو المشاكل (/ Pain Points Bottlenecks)</div>
-                    <textarea id="pain-points-input" class="form-textarea" placeholder="الوصف هنا"></textarea>
-                    <div class="form-hint">تحديد ما إذا كان هناك تأخير أو مشكلة محتملة في هذه الخطوة (يتم تلوينها تلقائياً باللون الأحمر في المخطط كـ Alert).</div>
-                </div>
-                
-                <div class="form-group">
-                    <div class="form-label">وقت التنفيذ</div>
-                    <div class="input-group">
-                        <input type="text" id="duration-val-input" class="form-input" placeholder="الوقت" style="flex-grow: 1;">
-                        <select id="duration-unit-select" class="form-select">
-                            <option value="ثانية">ثانية</option>
-                            <option value="دقيقة" selected>دقيقة</option>
-                            <option value="ساعة">ساعة</option>
-                            <option value="يوم">يوم</option>
-                            <option value="أسبوع">أسبوع</option>
-                            <option value="شهر">شهر</option>
-                        </select>
+                    
+                    <div class="form-group">
+                        <div class="form-label">الأدلة المادية</div>
+                        <input type="text" id="evidence-input" class="form-input" list="evidence-list" placeholder="إدراج أو اختيار" dir="rtl">
+                        <datalist id="evidence-list"></datalist>
+                        <div class="form-hint">تحديد الأجهزة أو المستندات المستخدمة في الورقية، موقع الويب، جهاز الدفع POS).</div>
                     </div>
-                    <div class="form-hint">أدخل متوسط الوقت المتوقع لتنفيذ هذا النشاط (مثلاً: 5 دقائق، أو ساعتان).</div>
+                    
+                    <div class="form-group">
+                        <div class="form-label">وصف النشاط أو العملية (Activity Description)</div>
+                        <textarea id="activity-desc-input" class="form-textarea" placeholder="الوصف هنا"></textarea>
+                        <div class="form-hint">شرح تفصيلي لما يحدث في هذه الخطوة خلف الكواليس أو من قبل الشخصية.</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="form-label">النقاط الحرجة أو المشاكل (/ Pain Points Bottlenecks)</div>
+                        <textarea id="pain-points-input" class="form-textarea" placeholder="الوصف هنا"></textarea>
+                        <div class="form-hint">تحديد ما إذا كان هناك تأخير أو مشكلة محتملة في هذه الخطوة (يتم تلوينها تلقائياً باللون الأحمر في المخطط كـ Alert).</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="form-label">وقت التنفيذ</div>
+                        <div class="input-group">
+                            <input type="text" id="duration-val-input" class="form-input" placeholder="الوقت" style="flex-grow: 1;">
+                            <select id="duration-unit-select" class="form-select">
+                                <option value="ثانية">ثانية</option>
+                                <option value="دقيقة" selected>دقيقة</option>
+                                <option value="ساعة">ساعة</option>
+                                <option value="يوم">يوم</option>
+                                <option value="أسبوع">أسبوع</option>
+                                <option value="شهر">شهر</option>
+                            </select>
+                        </div>
+                        <div class="form-hint">أدخل متوسط الوقت المتوقع لتنفيذ هذا النشاط (مثلاً: 5 دقائق، أو ساعتان).</div>
+                    </div>
+                    
+                    <button id="add-step-btn" class="add-btn" type="button">
+                        <span>إضافة</span>
+                        <span>+</span>
+                    </button>
                 </div>
-                
-                <button id="add-step-btn" class="add-btn">
-                    <span>إضافة</span>
-                    <span>+</span>
-                </button>
             </div>
-        </div>
-
-        <div class="blueprint-container">
-            <!-- Customer Actions -->
-            <div class="section-box ca-row overflow-x-auto min-h-[190px]">
-                <div class="label-box ca-label flex-shrink-0">
-                    <span class="arabic-text" dir="rtl">أفعال العميل</span>
-                    <span class="english-text">(Customer Actions)</span>
-                </div>
-                <div class="steps-cards-container flex gap-4 p-4 flex-1 items-center" id="cards-ca" dir="ltr"></div>
-            </div>
-
-            <!-- Line of Interaction -->
-            <div class="line-container">
-                <div class="line-text">
-                    <span dir="rtl">خط التفاعل</span>
-                    <span>(LINE OF INTERACTION)</span>
-                </div>
-                <div class="line-dash"></div>
-            </div>
-
-            <!-- Frontstage -->
-            <div class="section-box fs-row overflow-x-auto min-h-[190px]">
-                <div class="label-box fs-label flex-shrink-0">
-                    <span class="arabic-text" dir="rtl">الواجهة الأمامية / الخط الأمامي</span>
-                    <span class="english-text">(Frontstage)</span>
-                </div>
-                <div class="steps-cards-container flex gap-4 p-4 flex-1 items-center" id="cards-fs" dir="ltr"></div>
-            </div>
-
-            <!-- Line of Visibility -->
-            <div class="line-container">
-                <div class="line-text">
-                    <span dir="rtl">خط الرؤية</span>
-                    <span>(LINE OF VISIBILITY)</span>
-                </div>
-                <div class="line-dash"></div>
-            </div>
-
-            <!-- Backstage -->
-            <div class="section-box bs-row overflow-x-auto min-h-[190px]">
-                <div class="label-box bs-label flex-shrink-0">
-                    <span class="arabic-text" dir="rtl">الكواليس / الخط الخلفي</span>
-                    <span class="english-text">(Backstage)</span>
-                </div>
-                <div class="steps-cards-container flex gap-4 p-4 flex-1 items-center" id="cards-bs" dir="ltr"></div>
-            </div>
-
-            <!-- Line of Internal Interaction -->
-            <div class="line-container">
-                <div class="line-text">
-                    <span dir="rtl">خط التفاعل الداخلي</span>
-                    <span>(LINE OF INTERNAL INTERACTION)</span>
-                </div>
-                <div class="line-dash"></div>
-            </div>
-
-            <!-- Support Processes -->
-            <div class="section-box sp-row overflow-x-auto min-h-[190px]">
-                <div class="label-box sp-label flex-shrink-0">
-                    <span class="arabic-text" dir="rtl">العمليات والدعم</span>
-                    <span class="english-text">(Support Processes / Behind the scenes)</span>
-                </div>
-                <div class="steps-cards-container flex gap-4 p-4 flex-1 items-center" id="cards-sp" dir="ltr"></div>
-            </div>
-
-            <!-- Actions Frame -->
-            <div class="actions-frame" dir="rtl" style="margin-top: 8px; margin-bottom: 0;">
-                <button class="action-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="9" y1="3" x2="9" y2="21"></line>
-                        <path d="M13 8l4 4-4 4"></path>
-                    </svg>
-                    <span>عرض المخطط التفاعلي</span>
-                </button>
-                <button class="action-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                        <polyline points="21 15 16 10 5 21"></polyline>
-                    </svg>
-                    <span>تصدير كصورة</span>
-                </button>
-                <button class="action-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <polyline points="10 9 9 9 8 9"></polyline>
-                    </svg>
-                    <span>تصدير كـ PDF</span>
-                </button>
-                <button class="action-btn" id="export-json-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    <span>تصدير JSON</span>
-                </button>
-                <button class="action-btn" id="copy-link-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                    </svg>
-                    <span>نسخ الرابط</span>
-                </button>
-            </div>
-            
         </div>
     </div>
 
@@ -890,20 +868,36 @@
             }
         }
 
-        // Toggle 3-Dots Character Options Menu
+        // Toggle 3-Dots Character Options Menu (Floating Fixed Outside Frame)
         window.toggleCharacterMenu = function(event, idx) {
             if (event) event.stopPropagation();
-            document.querySelectorAll('.char-options-menu').forEach((menu, i) => {
-                if (i !== idx) menu.classList.add('hidden');
-            });
+
+            const btn = event ? (event.currentTarget || event.target.closest('.char-dots-btn')) : null;
             const targetMenu = document.getElementById(`char-menu-${idx}`);
-            if (targetMenu) {
-                targetMenu.classList.toggle('hidden');
+
+            // Close all other open menus first
+            document.querySelectorAll('.char-options-menu').forEach((menu) => {
+                if (menu !== targetMenu) menu.classList.add('hidden');
+            });
+
+            if (targetMenu && btn) {
+                const isHidden = targetMenu.classList.contains('hidden');
+                if (isHidden) {
+                    const rect = btn.getBoundingClientRect();
+                    targetMenu.style.position = 'fixed';
+                    targetMenu.style.top = `${rect.bottom + 6}px`;
+                    targetMenu.style.left = `${rect.left}px`;
+                    targetMenu.style.zIndex = '999999';
+                    targetMenu.classList.remove('hidden');
+                } else {
+                    targetMenu.classList.add('hidden');
+                }
             }
         };
 
         // Edit Character Function
         window.editCharacter = function(idx) {
+            document.querySelectorAll('.char-options-menu').forEach(menu => menu.classList.add('hidden'));
             const charObj = currentBlueprint.characters[idx];
             if (!charObj) return;
 
@@ -925,12 +919,15 @@
             }
         };
 
-        // Close character menus on click outside
+        // Close character menus on click outside or window scroll
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.char-options-menu') && !e.target.closest('.char-dots-btn')) {
                 document.querySelectorAll('.char-options-menu').forEach(menu => menu.classList.add('hidden'));
             }
         });
+        window.addEventListener('scroll', () => {
+            document.querySelectorAll('.char-options-menu').forEach(menu => menu.classList.add('hidden'));
+        }, true);
 
         // Render Character Cards in Characters Frame (Matching Image Design)
         function renderCharactersListOnly() {
@@ -967,12 +964,12 @@
                         <span class="text-xs font-semibold">${charName}</span>
                     </div>
 
-                    <div class="relative">
+                    <div>
                         <button type="button" onclick="event.stopPropagation(); toggleCharacterMenu(event, ${idx})" class="char-dots-btn p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer" title="خيارات إضافية">
                             <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
                         </button>
                         
-                        <div id="char-menu-${idx}" class="char-options-menu hidden absolute left-0 top-full mt-1 w-24 bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1 text-xs font-semibold" dir="rtl">
+                        <div id="char-menu-${idx}" class="char-options-menu hidden fixed bg-white border border-gray-200 rounded-xl shadow-xl z-[999999] py-1 w-24 text-xs font-semibold" dir="rtl">
                             <button type="button" onclick="event.stopPropagation(); editCharacter(${idx})" class="w-full text-right px-3 py-1.5 hover:bg-gray-100 text-gray-700 flex items-center gap-1.5 cursor-pointer">
                                 <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                 <span>تعديل</span>
