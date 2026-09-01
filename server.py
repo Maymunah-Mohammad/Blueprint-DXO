@@ -26,15 +26,6 @@ def init_db():
         )
     ''')
     
-    cursor.execute('SELECT COUNT(*) FROM characters')
-    if cursor.fetchone()[0] == 0:
-        defaults = [
-            ("المستفيد", "Customer Actions"),
-            ("المكتب الهندسي", "Frontstage"),
-            ("موظف الخدمة", "Backstage")
-        ]
-        cursor.executemany('INSERT INTO characters (name, layer) VALUES (?, ?)', defaults)
-    
     # 2. Blueprints Table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS blueprints (

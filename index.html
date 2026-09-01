@@ -405,32 +405,35 @@
             <span id="toast-message">تم الحفظ بنجاح</span>
         </div>
 
-        <!-- Side Panel: Saved Blueprints Drawer (سجل الرحلات) -->
-        <div id="saved-blueprints-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white border-l border-gray-200 shadow-2xl z-[99999] flex flex-col transition-transform duration-300 transform translate-x-full" dir="rtl">
-            <div class="p-4 border-b bg-[#f1f6fb] flex justify-between items-center">
+        <!-- Backdrop for Left Side Panel Drawer -->
+        <div id="sidebar-backdrop" onclick="toggleSavedBlueprintsSidebar()" class="fixed inset-0 bg-black/40 backdrop-blur-[1px] z-[999998] hidden transition-opacity duration-300"></div>
+
+        <!-- Left Side Panel: Saved Blueprints Drawer (سجل الرحلات) - Width 260px, Full Height -->
+        <div id="saved-blueprints-sidebar" class="fixed top-0 left-0 h-full w-[260px] bg-white border-r border-gray-200 shadow-2xl z-[999999] flex flex-col transition-transform duration-300 transform -translate-x-full" dir="rtl">
+            <div class="p-3.5 border-b bg-[#f1f6fb] flex justify-between items-center">
                 <div class="flex items-center gap-2">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
                         <line x1="9" y1="3" x2="9" y2="21"></line>
                         <line x1="15" y1="3" x2="15" y2="21"></line>
                     </svg>
-                    <h3 class="font-bold text-sm text-gray-800">سجل الرحلات والمخططات</h3>
+                    <h3 class="font-bold text-xs text-gray-800">سجل الرحلات والمخططات</h3>
                 </div>
                 <button onclick="toggleSavedBlueprintsSidebar()" class="text-gray-400 hover:text-gray-700 text-xl font-bold p-1 leading-none cursor-pointer" type="button">&times;</button>
             </div>
 
-            <div class="p-3 border-b bg-gray-50 flex justify-between items-center">
-                <button onclick="window.createNewBlueprint()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer" type="button">
+            <div class="p-2.5 border-b bg-gray-50 flex justify-between items-center">
+                <button onclick="window.createNewBlueprint(); toggleSavedBlueprintsSidebar();" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer" type="button">
                     <span>+</span>
                     <span>مخطط جديد</span>
                 </button>
             </div>
 
-            <div id="sidebar-blueprints-list" class="flex-1 overflow-y-auto p-3 flex flex-col gap-2.5">
+            <div id="sidebar-blueprints-list" class="flex-1 overflow-y-auto p-2.5 flex flex-col gap-2">
                 <!-- Dynamic blueprint items loaded here -->
             </div>
 
-            <div class="p-3 border-t bg-gray-50 text-[11px] text-gray-500 text-center">
+            <div class="p-2.5 border-t bg-gray-50 text-[11px] text-gray-500 text-center">
                 مخزنة في قاعدة البيانات SQLite
             </div>
         </div>
@@ -539,7 +542,19 @@
 
                 <!-- Actions Frame: Fixed height at bottom -->
                 <div class="actions-frame" id="actions-frame" dir="rtl">
-                    <button class="action-btn" type="button">
+                    <!-- Primary Save Button (Figma Node 53:1408 Design) -->
+                    <button id="save-blueprint-btn" onclick="window.handleExplicitSave()" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-md transition-all cursor-pointer shrink-0 active:scale-95" type="button">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        <span>حفظ</span>
+                    </button>
+
+                    <div class="h-5 w-px bg-gray-200 mx-1 shrink-0"></div>
+
+                    <button class="action-btn other-action-btn opacity-40 cursor-not-allowed pointer-events-none" disabled type="button">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                             <line x1="9" y1="3" x2="9" y2="21"></line>
@@ -547,7 +562,7 @@
                         </svg>
                         <span>عرض المخطط التفاعلي</span>
                     </button>
-                    <button class="action-btn" type="button">
+                    <button class="action-btn other-action-btn opacity-40 cursor-not-allowed pointer-events-none" disabled type="button">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                             <circle cx="8.5" cy="8.5" r="1.5"></circle>
@@ -555,7 +570,7 @@
                         </svg>
                         <span>تصدير كصورة</span>
                     </button>
-                    <button class="action-btn" type="button">
+                    <button class="action-btn other-action-btn opacity-40 cursor-not-allowed pointer-events-none" disabled type="button">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                             <polyline points="14 2 14 8 20 8"></polyline>
@@ -565,7 +580,7 @@
                         </svg>
                         <span>تصدير كـ PDF</span>
                     </button>
-                    <button class="action-btn" id="export-json-btn" type="button">
+                    <button class="action-btn other-action-btn opacity-40 cursor-not-allowed pointer-events-none" id="export-json-btn" disabled type="button">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="7 10 12 15 17 10"></polyline>
@@ -573,7 +588,7 @@
                         </svg>
                         <span>تصدير JSON</span>
                     </button>
-                    <button class="action-btn" id="copy-link-btn" type="button">
+                    <button class="action-btn other-action-btn opacity-40 cursor-not-allowed pointer-events-none" id="copy-link-btn" disabled type="button">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
@@ -753,11 +768,7 @@
         let currentBlueprint = {
             id: null,
             title: "",
-            characters: [
-                { name: "المستفيد", layer: "Customer Actions" },
-                { name: "المكتب الهندسي", layer: "Frontstage" },
-                { name: "موظف الخدمة", layer: "Backstage" }
-            ],
+            characters: [],
             steps: []
         };
 
@@ -853,10 +864,7 @@
         // Normalize character entries to object format { name, layer }
         function normalizeCharacters() {
             if (!currentBlueprint.characters || !Array.isArray(currentBlueprint.characters)) {
-                currentBlueprint.characters = [
-                    { name: "المستفيد", layer: "Customer Actions" },
-                    { name: "المكتب الهندسي", layer: "Frontstage" }
-                ];
+                currentBlueprint.characters = [];
             } else {
                 currentBlueprint.characters = currentBlueprint.characters.map((c, i) => {
                     if (typeof c === 'string') {
@@ -1009,10 +1017,6 @@
         }
 
         window.removeCharacter = async function(idx) {
-            if (currentBlueprint.characters.length <= 1) {
-                alert("يجب إبقاء شخصية واحدة على الأقل في المخطط.");
-                return;
-            }
             const removed = currentBlueprint.characters.splice(idx, 1)[0];
             const removedName = typeof removed === 'string' ? removed : (removed ? removed.name : '');
             if (activeCharacter === removedName) {
@@ -1020,17 +1024,8 @@
             }
             renderCharacters();
 
-            if (removedName) {
-                try {
-                    await fetch(`/api/characters?name=${encodeURIComponent(removedName)}`, { method: 'DELETE' });
-                } catch(e) {
-                    console.error("Database delete error:", e);
-                }
-            }
-
-            if (currentBlueprint.steps.length > 0) {
-                saveBlueprintToServer(false);
-            }
+            window.isBlueprintSaved = false;
+            if (window.updateActionsButtonsState) window.updateActionsButtonsState();
             showToast(`تم حذف الشخصية "${removedName}"`);
         };
 
@@ -1086,6 +1081,8 @@
                 normalizeCharacters();
                 renderCharacters();
                 renderBlueprint();
+                window.isBlueprintSaved = true;
+                if (window.updateActionsButtonsState) window.updateActionsButtonsState();
                 showToast(`تم تحميل "${currentBlueprint.title}"`);
             } catch (err) {
                 console.error("Load error:", err);
@@ -1169,7 +1166,8 @@
         window.removeStep = function(idx) {
             currentBlueprint.steps.splice(idx, 1);
             renderBlueprint();
-            saveBlueprintToServer(false);
+            window.isBlueprintSaved = false;
+            if (window.updateActionsButtonsState) window.updateActionsButtonsState();
         };
 
         // UI Event Listeners
@@ -1180,9 +1178,8 @@
 
         journeyTitleInput.addEventListener('change', () => {
             currentBlueprint.title = journeyTitleInput.value.trim();
-            if (currentBlueprint.steps.length > 0) {
-                saveBlueprintToServer(false);
-            }
+            window.isBlueprintSaved = false;
+            if (window.updateActionsButtonsState) window.updateActionsButtonsState();
         });
 
         trigger.addEventListener('click', (e) => {
@@ -1245,12 +1242,6 @@
                 const oldName = typeof oldObj === 'string' ? oldObj : (oldObj ? oldObj.name : '');
                 currentBlueprint.characters[window.editingCharacterIndex] = { name: cleanName, layer: cleanLayer };
                 window.editingCharacterIndex = null;
-
-                if (oldName && oldName !== cleanName) {
-                    try {
-                        await fetch(`/api/characters?name=${encodeURIComponent(oldName)}`, { method: 'DELETE' });
-                    } catch(e){}
-                }
             } else {
                 const existingObj = currentBlueprint.characters.find(c => (typeof c === 'string' ? c === cleanName : c.name === cleanName));
                 if (existingObj) {
@@ -1265,21 +1256,10 @@
             renderCharacters();
             setActiveCharacter(cleanName);
 
-            // Save to SQLite Database
-            try {
-                await fetch('/api/characters', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: cleanName, layer: cleanLayer })
-                });
-            } catch (e) {
-                console.error("Database save error:", e);
-            }
-
-            if (currentBlueprint.steps.length > 0) {
-                saveBlueprintToServer(false);
-            }
-            showToast(`تم حفظ الشخصية "${cleanName}" في قاعدة البيانات!`);
+            // Mark unsaved state
+            window.isBlueprintSaved = false;
+            if (window.updateActionsButtonsState) window.updateActionsButtonsState();
+            showToast(`تمت إضافة الشخصية "${cleanName}" محلياً - اضغط 'حفظ' للتخزين في قاعدة البيانات`);
         };
 
         window.openCharacterModal = function() {
@@ -1401,7 +1381,10 @@
             ensureBlueprintTitle();
 
             renderBlueprint();
-            saveBlueprintToServer(true);
+
+            // Mark unsaved state until user clicks Save
+            window.isBlueprintSaved = false;
+            if (window.updateActionsButtonsState) window.updateActionsButtonsState();
 
             // Reset Form Inputs
             stepTitleInput.value = '';
@@ -1410,8 +1393,79 @@
             painPointsInput.value = '';
             durationValInput.value = '';
             
-            showToast(`تمت إضافة الخطوة "${titleVal}" وحفظها في قاعدة البيانات!`);
+            showToast(`تمت إضافة الخطوة "${titleVal}" محلياً - يرجى الضغط على "حفظ" لتخزين البيانات والتفعيل`);
         });
+
+        // Global State & Save Handler
+        window.isBlueprintSaved = false;
+
+        window.updateActionsButtonsState = function() {
+            const saveBtn = document.getElementById('save-blueprint-btn');
+            const otherBtns = document.querySelectorAll('.actions-frame .other-action-btn');
+
+            if (window.isBlueprintSaved) {
+                otherBtns.forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-40', 'cursor-not-allowed', 'pointer-events-none', 'bg-gray-100');
+                    btn.classList.add('cursor-pointer', 'hover:bg-gray-50');
+                });
+
+                if (saveBtn) {
+                    saveBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700', 'bg-blue-600', 'hover:bg-blue-700', 'shadow-lg');
+                    saveBtn.classList.add('bg-emerald-50', 'text-emerald-700', 'border', 'border-emerald-400');
+                    saveBtn.innerHTML = `
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                        <span>تم الحفظ</span>
+                    `;
+                }
+            } else {
+                otherBtns.forEach(btn => {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none', 'bg-gray-100');
+                    btn.classList.remove('cursor-pointer', 'hover:bg-gray-50');
+                });
+
+                if (saveBtn) {
+                    saveBtn.classList.remove('bg-emerald-50', 'text-emerald-700', 'border-emerald-400');
+                    saveBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-700', 'text-white', 'shadow-lg');
+                    saveBtn.innerHTML = `
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        <span>حفظ</span>
+                    `;
+                }
+            }
+        };
+
+        window.handleExplicitSave = async function() {
+            ensureBlueprintTitle();
+
+            showToast("جاري التخزين في الجداول التابعة لقاعدة البيانات...");
+
+            // Save Characters to DB
+            if (currentBlueprint.characters && currentBlueprint.characters.length > 0) {
+                for (const charObj of currentBlueprint.characters) {
+                    const cName = typeof charObj === 'string' ? charObj : charObj.name;
+                    const cLayer = typeof charObj === 'string' ? 'Customer Actions' : charObj.layer;
+                    try {
+                        await fetch('/api/characters', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: cName, layer: cLayer })
+                        });
+                    } catch(e) {}
+                }
+            }
+
+            // Save Blueprint & Steps & Connections to DB
+            await saveBlueprintToServer(true);
+            window.isBlueprintSaved = true;
+            window.updateActionsButtonsState();
+            showToast("تم حفظ العمل بنجاح داخل الجداول المخصصة!");
+        };
 
         // Action Buttons: Manual Save JSON
         const saveJsonBtn = document.getElementById('save-json-btn');
@@ -1550,13 +1604,18 @@
 
         window.toggleSavedBlueprintsSidebar = function() {
             const sidebar = document.getElementById('saved-blueprints-sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
             if (sidebar) {
-                const isHidden = sidebar.classList.contains('translate-x-full');
+                const isHidden = sidebar.classList.contains('-translate-x-full');
                 if (isHidden) {
-                    sidebar.classList.remove('translate-x-full');
+                    sidebar.classList.remove('-translate-x-full');
+                    sidebar.classList.add('translate-x-0');
+                    if (backdrop) backdrop.classList.remove('hidden');
                     window.renderSidebarBlueprints();
                 } else {
-                    sidebar.classList.add('translate-x-full');
+                    sidebar.classList.remove('translate-x-0');
+                    sidebar.classList.add('-translate-x-full');
+                    if (backdrop) backdrop.classList.add('hidden');
                 }
             }
         };
@@ -1703,6 +1762,8 @@
             const bpId = urlParams.get('id');
             if (bpId) {
                 await loadBlueprintFromServer(bpId);
+            } else {
+                if (window.updateActionsButtonsState) window.updateActionsButtonsState();
             }
         })();
     </script>
