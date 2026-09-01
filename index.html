@@ -542,8 +542,8 @@
 
                 <!-- Actions Frame: Fixed height at bottom -->
                 <div class="actions-frame" id="actions-frame" dir="rtl">
-                    <!-- Primary Save Button (Figma Node 53:1408 Design) -->
-                    <button id="save-blueprint-btn" onclick="window.handleExplicitSave()" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-md transition-all cursor-pointer shrink-0 active:scale-95" type="button">
+                    <!-- Primary Save Button (Figma Node 53:1408 Design - Disabled until first step) -->
+                    <button id="save-blueprint-btn" onclick="window.handleExplicitSave()" class="px-5 py-2 rounded-xl bg-gray-200 text-gray-400 font-bold text-xs flex items-center gap-2 border border-gray-300 opacity-40 cursor-not-allowed pointer-events-none shrink-0" disabled type="button">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                             <polyline points="17 21 17 13 7 13 7 21"></polyline>
@@ -1402,8 +1402,33 @@
         window.updateActionsButtonsState = function() {
             const saveBtn = document.getElementById('save-blueprint-btn');
             const otherBtns = document.querySelectorAll('.actions-frame .other-action-btn');
+            const hasSteps = currentBlueprint.steps && currentBlueprint.steps.length > 0;
+
+            if (!hasSteps) {
+                // Disable Save button and all other action buttons when 0 steps exist
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.className = "px-5 py-2 rounded-xl bg-gray-200 text-gray-400 font-bold text-xs flex items-center gap-2 border border-gray-300 opacity-40 cursor-not-allowed pointer-events-none shrink-0";
+                    saveBtn.innerHTML = `
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        <span>حفظ</span>
+                    `;
+                }
+
+                otherBtns.forEach(btn => {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none', 'bg-gray-100');
+                    btn.classList.remove('cursor-pointer', 'hover:bg-gray-50');
+                });
+                return;
+            }
 
             if (window.isBlueprintSaved) {
+                // Saved state
                 otherBtns.forEach(btn => {
                     btn.disabled = false;
                     btn.classList.remove('opacity-40', 'cursor-not-allowed', 'pointer-events-none', 'bg-gray-100');
@@ -1411,14 +1436,15 @@
                 });
 
                 if (saveBtn) {
-                    saveBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700', 'bg-blue-600', 'hover:bg-blue-700', 'shadow-lg');
-                    saveBtn.classList.add('bg-emerald-50', 'text-emerald-700', 'border', 'border-emerald-400');
+                    saveBtn.disabled = false;
+                    saveBtn.className = "px-5 py-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-400 font-bold text-xs flex items-center gap-2 cursor-pointer shrink-0";
                     saveBtn.innerHTML = `
                         <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
                         <span>تم الحفظ</span>
                     `;
                 }
             } else {
+                // Unsaved state with 1+ steps
                 otherBtns.forEach(btn => {
                     btn.disabled = true;
                     btn.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none', 'bg-gray-100');
@@ -1426,8 +1452,8 @@
                 });
 
                 if (saveBtn) {
-                    saveBtn.classList.remove('bg-emerald-50', 'text-emerald-700', 'border-emerald-400');
-                    saveBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-700', 'text-white', 'shadow-lg');
+                    saveBtn.disabled = false;
+                    saveBtn.className = "px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg transition-all cursor-pointer shrink-0 active:scale-95";
                     saveBtn.innerHTML = `
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
@@ -1441,6 +1467,11 @@
         };
 
         window.handleExplicitSave = async function() {
+            if (!currentBlueprint.steps || currentBlueprint.steps.length === 0) {
+                showToast("يرجى إدخال خطوة واحدة على الأقل قبل التخزين");
+                return;
+            }
+
             ensureBlueprintTitle();
 
             showToast("جاري التخزين في الجداول التابعة لقاعدة البيانات...");
