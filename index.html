@@ -440,7 +440,7 @@
 
         <!-- Header Frame (Top - Fixed Height) -->
         <div class="header-frame">
-            <button id="history-btn" onclick="toggleSavedBlueprintsSidebar()" class="action-btn cursor-pointer" type="button">
+            <button id="history-btn" onclick="event.preventDefault(); window.toggleSavedBlueprintsSidebar();" class="action-btn cursor-pointer" type="button">
                 <span dir="rtl">سجل الرحلات</span>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
@@ -1710,9 +1710,10 @@
         }
 
         if (historyBtn) {
-            historyBtn.addEventListener('click', () => {
-                historyModal.style.display = 'flex';
-                fetchHistoryList();
+            historyBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.toggleSavedBlueprintsSidebar();
             });
         }
 
