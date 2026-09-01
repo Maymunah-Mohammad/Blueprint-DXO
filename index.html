@@ -1259,7 +1259,7 @@
             // Mark unsaved state
             window.isBlueprintSaved = false;
             if (window.updateActionsButtonsState) window.updateActionsButtonsState();
-            showToast(`تمت إضافة الشخصية "${cleanName}" محلياً - اضغط 'حفظ' للتخزين في قاعدة البيانات`);
+            showToast(`تمت إضافة الشخصية "${cleanName}"`);
         };
 
         window.openCharacterModal = function() {
@@ -1393,7 +1393,7 @@
             painPointsInput.value = '';
             durationValInput.value = '';
             
-            showToast(`تمت إضافة الخطوة "${titleVal}" محلياً - يرجى الضغط على "حفظ" لتخزين البيانات والتفعيل`);
+            showToast(`تمت إضافة الخطوة "${titleVal}"`);
         });
 
         // Global State & Save Handler
