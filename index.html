@@ -1301,7 +1301,12 @@
                     <!-- Card Top Header Banner (Figma Design 61:1280) -->
                     <div class="bg-[#edf5fd] border-b border-[#d0e3f7] px-3.5 py-2 flex justify-between items-center relative">
                         <span class="font-bold text-xs text-[#0369a1] truncate pr-2">${step.title || 'اسم الخطوة'}</span>
-                        <button onclick="removeStep(${idx})" class="text-gray-400 hover:text-red-600 text-lg font-bold leading-none p-1 rounded-md hover:bg-white/60 transition-colors cursor-pointer" title="حذف الخطوة">&times;</button>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <button onclick="editStep(${idx})" class="text-gray-400 hover:text-blue-600 p-1 rounded-md hover:bg-white/60 transition-colors cursor-pointer" title="تعديل الخطوة">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            </button>
+                            <button onclick="removeStep(${idx})" class="text-gray-400 hover:text-red-600 text-lg font-bold leading-none p-1 rounded-md hover:bg-white/60 transition-colors cursor-pointer" title="حذف الخطوة">&times;</button>
+                        </div>
                     </div>
 
                     <!-- Card Body Content -->
@@ -1334,8 +1339,66 @@
             });
         }
 
+        window.editingStepIndex = null;
+
+        // Edit Step Function
+        window.editStep = function(idx) {
+            const step = currentBlueprint.steps[idx];
+            if (!step) return;
+
+            window.editingStepIndex = idx;
+
+            const stepTitleInput = document.getElementById('step-title-input');
+            const evidenceInput = document.getElementById('evidence-input');
+            const activityDescInput = document.getElementById('activity-desc-input');
+            const painPointsInput = document.getElementById('pain-points-input');
+            const durationValInput = document.getElementById('duration-val-input');
+            const durationUnitSelect = document.getElementById('duration-unit-select');
+            const preStepSelect = document.getElementById('pre-step-select');
+            const stepRelationSelect = document.getElementById('step-relation-select');
+            const selectedText = document.getElementById('layer-selected-text');
+            const addStepBtn = document.getElementById('add-step-btn');
+
+            if (stepTitleInput) stepTitleInput.value = step.title || '';
+            if (evidenceInput) evidenceInput.value = step.evidence || '';
+            if (activityDescInput) activityDescInput.value = step.description || '';
+            if (painPointsInput) painPointsInput.value = step.painPoints || '';
+            if (durationValInput) durationValInput.value = step.duration || '';
+            if (durationUnitSelect && step.timeUnit) durationUnitSelect.value = step.timeUnit;
+            if (preStepSelect) preStepSelect.value = step.pre_step_id || '';
+            if (stepRelationSelect) stepRelationSelect.value = step.relation_type || 'next';
+            if (selectedText && step.layer) selectedText.textContent = step.layer;
+
+            if (step.character) {
+                setActiveCharacter(step.character);
+            }
+
+            if (addStepBtn) {
+                addStepBtn.innerHTML = `
+                    <span>تحديث الخطوة</span>
+                    <span>✏️</span>
+                `;
+                addStepBtn.classList.add('bg-amber-600', 'hover:bg-amber-700', 'text-white');
+            }
+
+            const stepsFrame = document.getElementById('steps-frame');
+            if (stepsFrame) {
+                stepsFrame.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            showToast(`جاري تعديل الخطوة "${step.title || ''}"...`);
+        };
+
         // Remove Step
         window.removeStep = async function(idx) {
+            if (window.editingStepIndex === idx) {
+                window.editingStepIndex = null;
+                const addStepBtn = document.getElementById('add-step-btn');
+                if (addStepBtn) {
+                    addStepBtn.innerHTML = `<span>إضافة</span><span>+</span>`;
+                    addStepBtn.classList.remove('bg-amber-600', 'hover:bg-amber-700', 'text-white');
+                }
+            }
             currentBlueprint.steps.splice(idx, 1);
             renderBlueprint();
             await saveBlueprintToServer(false);
@@ -1531,8 +1594,10 @@
             const preStepVal = preStepSelect ? preStepSelect.value : '';
             const relationVal = stepRelationSelect ? stepRelationSelect.value : 'next';
 
+            const isEditing = window.editingStepIndex !== null && window.editingStepIndex !== undefined && window.editingStepIndex >= 0;
+
             const stepObj = {
-                id: 'step-' + Date.now(),
+                id: isEditing ? (currentBlueprint.steps[window.editingStepIndex].id || ('step-' + Date.now())) : ('step-' + Date.now()),
                 layer: layerVal,
                 character: activeCharacter,
                 title: titleVal,
@@ -1545,10 +1610,23 @@
                 relation_type: relationVal
             };
 
-            window.showLoading("جاري إضافة الخطوة وتخزين المخطط...");
+            window.showLoading(isEditing ? "جاري تحديث الخطوة وتخزين المخطط..." : "جاري إضافة الخطوة وتخزين المخطط...");
 
             setTimeout(async () => {
-                currentBlueprint.steps.push(stepObj);
+                if (isEditing) {
+                    currentBlueprint.steps[window.editingStepIndex] = stepObj;
+                    window.editingStepIndex = null;
+
+                    if (addStepBtn) {
+                        addStepBtn.innerHTML = `
+                            <span>إضافة</span>
+                            <span>+</span>
+                        `;
+                        addStepBtn.classList.remove('bg-amber-600', 'hover:bg-amber-700', 'text-white');
+                    }
+                } else {
+                    currentBlueprint.steps.push(stepObj);
+                }
 
                 // Ensure title if empty
                 ensureBlueprintTitle();
@@ -1577,7 +1655,7 @@
                 if (stepRelationSelect) stepRelationSelect.value = 'next';
                 
                 window.hideLoading();
-                showToast(`تمت إضافة الخطوة "${titleVal}" وتخزين المخطط بنجاح!`);
+                showToast(isEditing ? `تم تحديث الخطوة "${titleVal}" بنجاح!` : `تمت إضافة الخطوة "${titleVal}" وتخزين المخطط بنجاح!`);
             }, 250);
         });
 
