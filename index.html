@@ -1787,68 +1787,7 @@
             showToast("تم فتح مخطط جديد فارغ");
         };
 
-        // Modal ("سجل الرحلات") Logic
-        const historyBtn = document.getElementById('history-btn');
-        const historyModal = document.getElementById('history-modal');
-        const closeModalBtn = document.getElementById('close-modal-btn');
-        const historyListContainer = document.getElementById('history-list-container');
-        const newBlueprintBtn = document.getElementById('new-blueprint-btn');
 
-        async function fetchHistoryList() {
-            historyListContainer.innerHTML = '<div class="text-center py-6 text-gray-500">جاري تحميل السجل...</div>';
-            try {
-                const response = await fetch('/api/blueprints');
-                const list = await response.json();
-                
-                if (!list || list.length === 0) {
-                    historyListContainer.innerHTML = '<div class="text-center py-6 text-gray-500">لا يوجد مخططات محفوظة حتى الآن</div>';
-                    return;
-                }
-
-                historyListContainer.innerHTML = '';
-                list.forEach(item => {
-                    const el = document.createElement('div');
-                    el.className = "bg-white border rounded-lg p-3 flex justify-between items-center shadow-sm hover:border-blue-300 transition-colors";
-                    
-                    const dateStr = item.updatedAt ? new Date(item.updatedAt).toLocaleString('ar-SA') : '';
-
-                    el.innerHTML = `
-                        <div class="flex flex-col gap-0.5">
-                            <span class="font-bold text-gray-900">${item.title}</span>
-                            <span class="text-xs text-gray-500">${item.stepCount} خطوة &bull; آخر تعديل: ${dateStr}</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="openFromHistory('${item.id}')" class="bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold px-3 py-1.5 rounded-lg text-xs">فتح</button>
-                            <button onclick="deleteFromHistory('${item.id}', '${item.title}')" class="bg-red-50 text-red-600 hover:bg-red-100 font-bold px-2 py-1.5 rounded-lg text-xs">حذف</button>
-                        </div>
-                    `;
-                    historyListContainer.appendChild(el);
-                });
-            } catch (err) {
-                historyListContainer.innerHTML = '<div class="text-center py-6 text-red-500">فشل تحميل السجل من الخادم</div>';
-            }
-        }
-
-        if (historyBtn) {
-            historyBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                window.toggleSavedBlueprintsSidebar();
-            });
-        }
-
-        if (closeModalBtn) {
-            closeModalBtn.addEventListener('click', () => {
-                historyModal.style.display = 'none';
-            });
-        }
-
-        if (newBlueprintBtn) {
-            newBlueprintBtn.addEventListener('click', () => {
-                window.createNewBlueprint();
-                historyModal.style.display = 'none';
-            });
-        }
 
         async function loadCharactersFromDatabase() {
             try {
