@@ -253,18 +253,21 @@
             color: #5a5a5a;
         }
 
-        /* Blueprint Blocks */
+        /* Blueprint Blocks - Dynamic height hugging steps, no path scrolling */
         .section-box {
             display: flex;
-            align-items: center;
-            height: 208px;
+            align-items: stretch;
+            height: auto;
+            min-height: 120px;
             border-radius: 4px;
             position: relative;
             direction: ltr;
+            overflow: visible;
         }
         .label-box {
             width: 223px;
-            height: 188px;
+            height: auto;
+            min-height: 100px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -273,6 +276,9 @@
             margin-right: 10px;
             margin-left: 0;
             border-radius: 0;
+            align-self: stretch;
+            padding: 16px 8px;
+            flex-shrink: 0;
         }
         .line-container {
             display: flex;
@@ -487,12 +493,12 @@
 
                     <div class="blueprint-container">
                         <!-- Customer Actions -->
-                        <div class="section-box ca-row overflow-x-auto min-h-[190px]">
+                        <div class="section-box ca-row">
                             <div class="label-box ca-label flex-shrink-0">
                                 <span class="arabic-text" dir="rtl">أفعال العميل</span>
                                 <span class="english-text">(Customer Actions)</span>
                             </div>
-                            <div class="steps-cards-container flex gap-4 p-4 flex-1 items-center" id="cards-ca" dir="ltr"></div>
+                            <div class="steps-cards-container flex gap-4 p-3.5 flex-1 items-center" id="cards-ca" dir="ltr"></div>
                         </div>
 
                         <!-- Line of Interaction -->
@@ -505,12 +511,12 @@
                         </div>
 
                         <!-- Frontstage -->
-                        <div class="section-box fs-row overflow-x-auto min-h-[190px]">
+                        <div class="section-box fs-row">
                             <div class="label-box fs-label flex-shrink-0">
                                 <span class="arabic-text" dir="rtl">الواجهة الأمامية / الخط الأمامي</span>
                                 <span class="english-text">(Frontstage)</span>
                             </div>
-                            <div class="steps-cards-container flex gap-4 p-4 flex-1 items-center" id="cards-fs" dir="ltr"></div>
+                            <div class="steps-cards-container flex gap-4 p-3.5 flex-1 items-center" id="cards-fs" dir="ltr"></div>
                         </div>
 
                         <!-- Line of Visibility -->
@@ -523,12 +529,12 @@
                         </div>
 
                         <!-- Backstage -->
-                        <div class="section-box bs-row overflow-x-auto min-h-[190px]">
+                        <div class="section-box bs-row">
                             <div class="label-box bs-label flex-shrink-0">
                                 <span class="arabic-text" dir="rtl">الكواليس / الخط الخلفي</span>
                                 <span class="english-text">(Backstage)</span>
                             </div>
-                            <div class="steps-cards-container flex gap-4 p-4 flex-1 items-center" id="cards-bs" dir="ltr"></div>
+                            <div class="steps-cards-container flex gap-4 p-3.5 flex-1 items-center" id="cards-bs" dir="ltr"></div>
                         </div>
 
                         <!-- Line of Internal Interaction -->
@@ -541,12 +547,12 @@
                         </div>
 
                         <!-- Support Processes -->
-                        <div class="section-box sp-row overflow-x-auto min-h-[190px]">
+                        <div class="section-box sp-row">
                             <div class="label-box sp-label flex-shrink-0">
                                 <span class="arabic-text" dir="rtl">العمليات والدعم</span>
                                 <span class="english-text">(Support Processes / Behind the scenes)</span>
                             </div>
-                            <div class="steps-cards-container flex gap-4 p-4 flex-1 items-center" id="cards-sp" dir="ltr"></div>
+                            <div class="steps-cards-container flex gap-4 p-3.5 flex-1 items-center" id="cards-sp" dir="ltr"></div>
                         </div>
                     </div>
                 </div>
