@@ -1363,26 +1363,30 @@
             const painVal = painPointsInput.value.trim();
             const durationVal = durationValInput.value.trim();
             const unitVal = durationUnitSelect.value;
-            const layerVal = selectedText.textContent;
+            let layerVal = selectedText ? selectedText.textContent : '';
 
             // Required Field Validation
             const layerTrigger = document.getElementById('layer-dropdown-trigger');
             if (layerTrigger) layerTrigger.classList.remove('invalid-field');
             if (stepTitleInput) stepTitleInput.classList.remove('invalid-field');
 
-            let isValid = true;
             const isLayerValid = layerVal && !layerVal.includes('اختيار الطبقة');
             if (!isLayerValid) {
-                if (layerTrigger) layerTrigger.classList.add('invalid-field');
-                isValid = false;
+                const charObj = (currentBlueprint.characters || []).find(c => (typeof c === 'string' ? c : c.name) === activeCharacter);
+                const charLayer = charObj ? (typeof charObj === 'string' ? 'Customer Actions' : charObj.layer) : 'Customer Actions';
+                const colorStyle = getLayerColorStyle(charLayer);
+                layerVal = colorStyle.fullLayer;
+                if (selectedText) selectedText.textContent = layerVal;
             }
+
+            let isValid = true;
             if (!titleVal) {
                 if (stepTitleInput) stepTitleInput.classList.add('invalid-field');
                 isValid = false;
             }
 
             if (!isValid) {
-                showToast("يرجى كتابة اسم المرحلة وتحديد الطبقة أولاً");
+                showToast("يرجى كتابة اسم المرحلة أولاً");
                 return;
             }
 
