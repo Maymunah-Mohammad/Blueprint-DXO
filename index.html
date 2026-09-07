@@ -1644,50 +1644,66 @@
             });
         }
 
-        // Side Panel Drawer: Saved Blueprints (المخططات المحفوظة)
+        // Side Panel Drawer: Saved Blueprints (سجل الرحلات والمخططات)
         window.renderSidebarBlueprints = async function() {
             const listContainer = document.getElementById('sidebar-blueprints-list');
             if (!listContainer) return;
 
-            listContainer.innerHTML = '<div class="text-center py-6 text-gray-400 text-xs">جاري التحميل من قاعدة البيانات...</div>';
+            listContainer.innerHTML = '<div class="text-center py-6 text-gray-400 text-xs flex items-center justify-center gap-2"><span>🔄</span><span>جاري التحميل من قاعدة البيانات...</span></div>';
 
             try {
                 const response = await fetch('/api/blueprints');
+                if (!response.ok) throw new Error("HTTP error " + response.status);
                 const list = await response.json();
 
-                if (!list || list.length === 0) {
-                    listContainer.innerHTML = '<div class="text-center py-6 text-gray-400 text-xs">لا يوجد مخططات محفوظة في قاعدة البيانات</div>';
+                if (!list || !Array.isArray(list) || list.length === 0) {
+                    listContainer.innerHTML = '<div class="text-center py-8 text-gray-400 text-xs flex flex-col items-center gap-2"><span>📂</span><span>لا يوجد مخططات محفوظة في قاعدة البيانات حتى الآن</span></div>';
                     return;
                 }
 
                 listContainer.innerHTML = '';
                 list.forEach(item => {
-                    const isCurrent = currentBlueprint.id === item.id;
-                    const dateStr = item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('ar-SA') : '';
+                    const isCurrent = currentBlueprint && currentBlueprint.id === item.id;
+                    let dateStr = '';
+                    if (item.updatedAt) {
+                        try {
+                            const d = new Date(item.updatedAt);
+                            if (!isNaN(d.getTime())) {
+                                dateStr = d.toLocaleDateString('ar-EG');
+                            } else {
+                                dateStr = String(item.updatedAt).split('T')[0] || '';
+                            }
+                        } catch(e) {
+                            dateStr = '';
+                        }
+                    }
+
+                    const stepCount = (item.stepCount !== undefined && item.stepCount !== null) ? item.stepCount : 0;
+                    const safeTitle = (item.title || 'مخطط بدون عنوان').replace(/'/g, "\\'");
 
                     const itemCard = document.createElement('div');
                     itemCard.className = `p-3 rounded-xl border transition-all flex flex-col gap-2 ${
                         isCurrent 
-                            ? 'bg-blue-50/70 border-blue-500 shadow-sm' 
+                            ? 'bg-blue-50/80 border-blue-500 shadow-sm' 
                             : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm'
                     }`;
 
                     itemCard.innerHTML = `
                         <div class="flex justify-between items-start gap-2">
                             <a href="/?id=${item.id}" onclick="event.preventDefault(); window.openFromSidebar('${item.id}');" class="font-bold text-xs ${isCurrent ? 'text-blue-700' : 'text-gray-800 hover:text-blue-600'} flex-1 leading-snug cursor-pointer">
-                                📌 ${item.title}
+                                📌 ${item.title || 'مخطط بدون عنوان'}
                             </a>
                             ${isCurrent ? '<span class="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded-full shrink-0">نشط</span>' : ''}
                         </div>
 
                         <div class="flex items-center justify-between text-[11px] text-gray-500 pt-1 border-t border-gray-100">
-                            <span>${item.stepCount} خطوة &bull; ${dateStr}</span>
+                            <span>${stepCount} خطوة ${dateStr ? '&bull; ' + dateStr : ''}</span>
                             
                             <div class="flex items-center gap-1">
-                                <button type="button" onclick="window.copyBlueprintLink('${item.id}')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-[10px] font-semibold cursor-pointer" title="نسخ رابط المخطط">
+                                <button type="button" onclick="event.stopPropagation(); window.copyBlueprintLink('${item.id}')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-[10px] font-semibold cursor-pointer" title="نسخ رابط المخطط">
                                     🔗 رابط
                                 </button>
-                                <button type="button" onclick="window.deleteFromSidebar('${item.id}', '${item.title}')" class="px-1.5 py-1 text-red-500 hover:bg-red-50 rounded text-[10px] font-bold cursor-pointer" title="حذف">
+                                <button type="button" onclick="event.stopPropagation(); window.deleteFromSidebar('${item.id}', '${safeTitle}')" class="px-1.5 py-1 text-red-500 hover:bg-red-50 rounded text-[10px] font-bold cursor-pointer" title="حذف">
                                     🗑️
                                 </button>
                             </div>
@@ -1696,7 +1712,8 @@
                     listContainer.appendChild(itemCard);
                 });
             } catch (err) {
-                listContainer.innerHTML = '<div class="text-center py-6 text-red-500 text-xs">تعذر تحميل قائمة المخططات</div>';
+                console.error("Sidebar render error:", err);
+                listContainer.innerHTML = `<div class="text-center py-6 text-red-500 text-xs">تعذر تحميل قائمة المخططات: ${err.message}</div>`;
             }
         };
 
