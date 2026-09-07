@@ -704,6 +704,23 @@
                         </div>
                         <div class="form-hint">أدخل متوسط الوقت المتوقع لتنفيذ هذا النشاط (مثلاً: 5 دقائق، أو ساعتان).</div>
                     </div>
+
+                    <div class="form-group">
+                        <div class="form-label">الخطوة السابقة (Pre-step / Parent Step)</div>
+                        <select id="pre-step-select" class="form-select" dir="rtl">
+                            <option value="">-- بدون خطوة سابقة (بداية تسلسل جديد) --</option>
+                        </select>
+                        <div class="form-hint">اختر الخطوة السابقة التي ترتبط بها هذه الخطوة مباشرة.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-label">موقع الخطوة بالنسبة للخطوة السابقة (Step Relation)</div>
+                        <select id="step-relation-select" class="form-select" dir="rtl">
+                            <option value="next" selected>التالي / متتالي (Sequential - Next Step)</option>
+                            <option value="parallel">بالتوازي / موازي (Parallel - Parallel Step)</option>
+                        </select>
+                        <div class="form-hint">حدد ما إذا كانت هذه الخطوة تحدث بالتوازي مع الخطوة السابقة أو بعدها مباشرة.</div>
+                    </div>
                     
                     <button id="add-step-btn" class="add-btn" type="button">
                         <span>إضافة</span>
@@ -1160,9 +1177,32 @@
             }
         }
 
+        // Populate Pre-step Select Dropdown dynamically
+        window.updatePreStepDropdown = function() {
+            const preSelect = document.getElementById('pre-step-select');
+            if (!preSelect) return;
+            const currentVal = preSelect.value;
+            preSelect.innerHTML = '<option value="">-- بدون خطوة سابقة (بداية تسلسل جديد) --</option>';
+
+            if (currentBlueprint.steps && currentBlueprint.steps.length > 0) {
+                currentBlueprint.steps.forEach((s, i) => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    const charInfo = s.character ? ` [${s.character}]` : '';
+                    opt.textContent = `خطوة ${i + 1}: ${s.title || 'بدون عنوان'}${charInfo}`;
+                    preSelect.appendChild(opt);
+                });
+            }
+
+            if (currentVal && Array.from(preSelect.options).some(o => o.value === currentVal)) {
+                preSelect.value = currentVal;
+            }
+        };
+
         // Render Cards in Rows with Color-Coded Persona Badges
         function renderBlueprint() {
             renderCharacters();
+            window.updatePreStepDropdown();
 
             const containers = ['cards-ca', 'cards-fs', 'cards-bs', 'cards-sp'];
             containers.forEach(cid => {
@@ -1220,6 +1260,25 @@
                     </div>`;
                 }
 
+                let relationBadgeHtml = '';
+                if (step.pre_step_id) {
+                    const targetPre = (currentBlueprint.steps || []).find(s => s.id === step.pre_step_id);
+                    if (targetPre) {
+                        const preTitle = targetPre.title || 'خطوة سابقة';
+                        if (step.relation_type === 'parallel') {
+                            relationBadgeHtml = `<div class="bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center gap-1 w-fit">
+                                <span>⚡ بالتوازي مع:</span>
+                                <span class="font-bold">${preTitle}</span>
+                            </div>`;
+                        } else {
+                            relationBadgeHtml = `<div class="bg-blue-50 text-blue-700 border border-blue-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center gap-1 w-fit">
+                                <span>🔗 يتبع الخطوة:</span>
+                                <span class="font-bold">${preTitle}</span>
+                            </div>`;
+                        }
+                    }
+                }
+
                 let evidenceHtml = '';
                 if (step.evidence) {
                     const items = step.evidence.split(/[,،\n]+/).map(s => s.trim()).filter(Boolean);
@@ -1247,15 +1306,22 @@
 
                     <!-- Card Body Content -->
                     <div class="p-3.5 flex flex-col gap-2.5">
-                        <div class="flex justify-between items-center gap-2">
+                        <div class="flex justify-between items-center gap-2 flex-wrap">
                             ${charHtml}
                             ${durationHtml}
                         </div>
+
+                        ${relationBadgeHtml}
 
                         <div class="flex flex-col gap-1">
                             <span class="font-bold text-[11px] text-[#0284c7]">وصف الخطوة</span>
                             <p class="text-xs text-gray-700 leading-relaxed">${step.description || 'اسم الرحلة'}</p>
                         </div>
+
+                        ${evidenceHtml}
+                        ${painHtml}
+                    </div>
+                `;
 
                         ${evidenceHtml}
                         ${painHtml}
@@ -1465,6 +1531,11 @@
                 }
             }
 
+            const preStepSelect = document.getElementById('pre-step-select');
+            const stepRelationSelect = document.getElementById('step-relation-select');
+            const preStepVal = preStepSelect ? preStepSelect.value : '';
+            const relationVal = stepRelationSelect ? stepRelationSelect.value : 'next';
+
             const stepObj = {
                 id: 'step-' + Date.now(),
                 layer: layerVal,
@@ -1474,7 +1545,9 @@
                 description: descVal,
                 painPoints: painVal,
                 duration: durationVal,
-                timeUnit: unitVal
+                timeUnit: unitVal,
+                pre_step_id: preStepVal,
+                relation_type: relationVal
             };
 
             window.showLoading("جاري إضافة الخطوة وتخزين المخطط...");
@@ -1505,6 +1578,8 @@
                 activityDescInput.value = '';
                 painPointsInput.value = '';
                 durationValInput.value = '';
+                if (preStepSelect) preStepSelect.value = '';
+                if (stepRelationSelect) stepRelationSelect.value = 'next';
                 
                 window.hideLoading();
                 showToast(`تمت إضافة الخطوة "${titleVal}" وتخزين المخطط بنجاح!`);

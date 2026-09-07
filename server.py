@@ -51,9 +51,19 @@ def init_db():
             pain_points TEXT,
             duration TEXT,
             time_unit TEXT,
+            pre_step_id TEXT,
+            relation_type TEXT,
             FOREIGN KEY (blueprint_id) REFERENCES blueprints(id) ON DELETE CASCADE
         )
     ''')
+    try:
+        cursor.execute('ALTER TABLE blueprint_steps ADD COLUMN pre_step_id TEXT')
+    except Exception:
+        pass
+    try:
+        cursor.execute('ALTER TABLE blueprint_steps ADD COLUMN relation_type TEXT')
+    except Exception:
+        pass
 
     # 4. Step Connections Table (Stores arrows pointing to target to_step_id)
     cursor.execute('''
@@ -124,7 +134,7 @@ def get_blueprint_by_id(bp_id):
     characters = json.loads(chars_json) if chars_json else []
 
     cursor.execute('''
-        SELECT id, layer, character, title, description, evidence, pain_points, duration, time_unit
+        SELECT id, layer, character, title, description, evidence, pain_points, duration, time_unit, pre_step_id, relation_type
         FROM blueprint_steps
         WHERE blueprint_id = ?
         ORDER BY step_order ASC
@@ -155,6 +165,8 @@ def get_blueprint_by_id(bp_id):
         'painPoints': r[6] or '',
         'duration': r[7] or '',
         'timeUnit': r[8] or '',
+        'pre_step_id': r[9] or '',
+        'relation_type': r[10] or 'next',
         'to_step_id': connections_map.get(r[0], [''])[0] if connections_map.get(r[0]) else '',
         'toStepIds': connections_map.get(r[0], [])
     } for r in step_rows]
@@ -198,9 +210,12 @@ def save_blueprint_to_db(data):
     steps = data.get('steps', [])
     for idx, step in enumerate(steps):
         step_id = step.get('id', f"step_{idx}_{int(datetime.now().timestamp()*1000)}")
+        pre_id = step.get('pre_step_id', '')
+        rel_type = step.get('relation_type', 'next')
+
         cursor.execute('''
-            INSERT OR REPLACE INTO blueprint_steps (id, blueprint_id, step_order, layer, character, title, description, evidence, pain_points, duration, time_unit)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO blueprint_steps (id, blueprint_id, step_order, layer, character, title, description, evidence, pain_points, duration, time_unit, pre_step_id, relation_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             step_id,
             bp_id,
@@ -212,7 +227,9 @@ def save_blueprint_to_db(data):
             step.get('evidence', ''),
             step.get('painPoints', ''),
             step.get('duration', ''),
-            step.get('timeUnit', '')
+            step.get('timeUnit', ''),
+            pre_id,
+            rel_type
         ))
 
         to_ids = []
@@ -220,6 +237,12 @@ def save_blueprint_to_db(data):
             to_ids.append(step.get('to_step_id'))
         if step.get('toStepIds') and isinstance(step.get('toStepIds'), list):
             to_ids.extend(step.get('toStepIds'))
+
+        if pre_id:
+            cursor.execute('''
+                INSERT OR IGNORE INTO step_connections (blueprint_id, step_id, to_step_id)
+                VALUES (?, ?, ?)
+            ''', (bp_id, pre_id, step_id))
 
         for to_id in set(to_ids):
             if to_id:
