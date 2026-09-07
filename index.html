@@ -1238,10 +1238,11 @@
         }
 
         // Remove Step
-        window.removeStep = function(idx) {
+        window.removeStep = async function(idx) {
             currentBlueprint.steps.splice(idx, 1);
             renderBlueprint();
-            window.isBlueprintSaved = false;
+            await saveBlueprintToServer(false);
+            if (window.renderSidebarBlueprints) window.renderSidebarBlueprints();
             if (window.updateActionsButtonsState) window.updateActionsButtonsState();
         };
 
@@ -1439,9 +1440,9 @@
                 timeUnit: unitVal
             };
 
-            window.showLoading("جاري إضافة الخطوة إلى المخطط...");
+            window.showLoading("جاري إضافة الخطوة وتخزين المخطط...");
 
-            setTimeout(() => {
+            setTimeout(async () => {
                 currentBlueprint.steps.push(stepObj);
 
                 // Ensure title if empty
@@ -1449,9 +1450,17 @@
 
                 renderBlueprint();
 
-                // Mark unsaved state until user clicks Save
-                window.isBlueprintSaved = false;
+                // Auto-save blueprint to SQLite database
+                await saveBlueprintToServer(false);
+
+                // Mark saved state and update action buttons
+                window.isBlueprintSaved = true;
                 if (window.updateActionsButtonsState) window.updateActionsButtonsState();
+
+                // Refresh saved blueprints sidebar list so link appears
+                if (window.renderSidebarBlueprints) {
+                    window.renderSidebarBlueprints();
+                }
 
                 // Reset Form Inputs
                 stepTitleInput.value = '';
@@ -1461,7 +1470,7 @@
                 durationValInput.value = '';
                 
                 window.hideLoading();
-                showToast(`تمت إضافة الخطوة "${titleVal}"`);
+                showToast(`تمت إضافة الخطوة "${titleVal}" وتخزين المخطط بنجاح!`);
             }, 250);
         });
 
