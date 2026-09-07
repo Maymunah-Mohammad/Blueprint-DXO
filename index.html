@@ -1184,8 +1184,21 @@
                 const placeholder = container.querySelector('.empty-placeholder');
                 if (placeholder) placeholder.remove();
 
+                // Append flow arrow if there are previous steps in this layer
+                if (container.children.length > 0) {
+                    const arrowEl = document.createElement('div');
+                    arrowEl.className = "flex items-center justify-center shrink-0 text-gray-800 self-center px-1 select-none";
+                    arrowEl.innerHTML = `
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="transform rotate-180">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    `;
+                    container.appendChild(arrowEl);
+                }
+
                 const card = document.createElement('div');
-                card.className = "bg-white border border-[#d2d6db] rounded-lg p-3 shadow-sm flex flex-col gap-2 min-w-[260px] max-w-[280px] relative text-right text-xs shrink-0 transition-all hover:shadow-md";
+                card.className = "bg-white border border-[#d2d6db] rounded-2xl shadow-sm flex flex-col min-w-[270px] max-w-[290px] relative text-right text-xs shrink-0 transition-all hover:shadow-md overflow-hidden group";
 
                 let charHtml = '';
                 if (step.character) {
@@ -1193,43 +1206,60 @@
                     const charLayer = charObj ? (typeof charObj === 'string' ? step.layer : charObj.layer) : step.layer;
                     const colorStyle = getLayerColorStyle(charLayer);
 
-                    charHtml = `<div class="font-bold px-2 py-0.5 rounded text-[11px] flex items-center gap-1 w-fit border" style="background-color: ${colorStyle.bg}; color: ${colorStyle.text}; border-color: ${colorStyle.border};">
+                    charHtml = `<div class="font-bold px-2.5 py-1 rounded-full text-[11px] flex items-center gap-1.5 w-fit border shadow-2xs" style="background-color: ${colorStyle.bg}; color: ${colorStyle.text}; border-color: ${colorStyle.border};">
                         <span>👤</span>
                         <span>${step.character}</span>
                     </div>`;
                 }
 
+                let durationHtml = '';
+                if (step.duration) {
+                    durationHtml = `<div class="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-600 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-md w-fit">
+                        <span>⏱️</span>
+                        <span>${step.duration} ${step.timeUnit || ''}</span>
+                    </div>`;
+                }
+
                 let evidenceHtml = '';
                 if (step.evidence) {
-                    evidenceHtml = `<div class="bg-gray-100 text-gray-700 rounded px-2 py-1 flex items-center gap-1 flex-wrap">
-                        <span class="font-bold text-[#040404]">الأدلة المادية:</span>
-                        <span class="bg-white border border-gray-300 rounded px-1.5 py-0.5 text-[11px]">${step.evidence}</span>
+                    const items = step.evidence.split(/[,،\n]+/).map(s => s.trim()).filter(Boolean);
+                    const badges = items.map(item => `<span class="bg-gray-100 border border-gray-300 rounded-full px-2.5 py-0.5 text-[11px] font-medium text-gray-700">${item}</span>`).join(' ');
+                    evidenceHtml = `<div class="flex flex-col gap-1">
+                        <span class="font-bold text-[11px] text-[#0284c7]">الأدلة المادية</span>
+                        <div class="flex flex-wrap gap-1.5">${badges}</div>
                     </div>`;
                 }
 
                 let painHtml = '';
                 if (step.painPoints) {
-                    painHtml = `<div class="bg-red-50 text-red-700 border border-red-200 rounded p-2 flex flex-col gap-0.5">
-                        <span class="font-bold">النقاط الحرجة / المشاكل:</span>
-                        <span>${step.painPoints}</span>
-                    </div>`;
-                }
-
-                let durationHtml = '';
-                if (step.duration) {
-                    durationHtml = `<div class="text-[11px] text-gray-500 font-semibold">
-                        ⏱️ ${step.duration} ${step.timeUnit || ''}
+                    painHtml = `<div class="bg-[#fff0f0] text-red-800 border border-red-100 rounded-xl p-2.5 flex flex-col gap-1 mt-1">
+                        <span class="font-bold text-[11px] text-red-600">النقاط الحرجة / المشاكل</span>
+                        <p class="text-xs text-gray-700 leading-relaxed">${step.painPoints}</p>
                     </div>`;
                 }
 
                 card.innerHTML = `
-                    <button onclick="removeStep(${idx})" class="absolute top-2 left-2 text-gray-400 hover:text-red-600 text-base font-bold leading-none p-1" title="حذف الخطوة">&times;</button>
-                    ${charHtml}
-                    <div class="font-bold text-sm text-[#0284c7] border-b pb-1 pr-4">${step.title || 'بدون عنوان'}</div>
-                    ${durationHtml}
-                    <div class="text-gray-700 leading-relaxed">${step.description || 'لا يوجد وصف'}</div>
-                    ${evidenceHtml}
-                    ${painHtml}
+                    <!-- Card Top Header Banner (Figma Design 61:1280) -->
+                    <div class="bg-[#edf5fd] border-b border-[#d0e3f7] px-3.5 py-2 flex justify-between items-center relative">
+                        <span class="font-bold text-xs text-[#0369a1] truncate pr-2">${step.title || 'اسم الخطوة'}</span>
+                        <button onclick="removeStep(${idx})" class="text-gray-400 hover:text-red-600 text-lg font-bold leading-none p-1 rounded-md hover:bg-white/60 transition-colors cursor-pointer" title="حذف الخطوة">&times;</button>
+                    </div>
+
+                    <!-- Card Body Content -->
+                    <div class="p-3.5 flex flex-col gap-2.5">
+                        <div class="flex justify-between items-center gap-2">
+                            ${charHtml}
+                            ${durationHtml}
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <span class="font-bold text-[11px] text-[#0284c7]">وصف الخطوة</span>
+                            <p class="text-xs text-gray-700 leading-relaxed">${step.description || 'اسم الرحلة'}</p>
+                        </div>
+
+                        ${evidenceHtml}
+                        ${painHtml}
+                    </div>
                 `;
 
                 container.appendChild(card);
