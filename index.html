@@ -709,6 +709,32 @@
     </div>
 
     <script>
+        // Sidebar Toggle Helper (Early Definition)
+        window.toggleSavedBlueprintsSidebar = function() {
+            const sidebar = document.getElementById('saved-blueprints-sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            if (sidebar) {
+                const isCurrentlyOpen = sidebar.classList.contains('sidebar-open');
+                
+                if (!isCurrentlyOpen) {
+                    sidebar.classList.add('sidebar-open');
+                    sidebar.style.setProperty('left', '0px', 'important');
+                    if (backdrop) {
+                        backdrop.style.setProperty('display', 'block', 'important');
+                    }
+                    if (window.renderSidebarBlueprints) {
+                        window.renderSidebarBlueprints();
+                    }
+                } else {
+                    sidebar.classList.remove('sidebar-open');
+                    sidebar.style.setProperty('left', '-300px', 'important');
+                    if (backdrop) {
+                        backdrop.style.setProperty('display', 'none', 'important');
+                    }
+                }
+            }
+        };
+
         // Modal Window Helpers
         window.onModalLayerChange = function(selectEl) {
             const val = selectEl.value;
@@ -1785,6 +1811,17 @@
 
         // Initialize on Page Load
         (async function init() {
+            const historyBtn = document.getElementById('history-btn');
+            if (historyBtn) {
+                historyBtn.onclick = function(e) {
+                    if (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                    window.toggleSavedBlueprintsSidebar();
+                };
+            }
+
             const addBtn = document.getElementById('add-character-btn');
             if (addBtn) {
                 addBtn.onclick = function(e) {
