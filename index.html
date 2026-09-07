@@ -399,43 +399,43 @@
         </div>
     </div>
 
+    <!-- Backdrop for Left Side Panel Drawer -->
+    <div id="sidebar-backdrop" onclick="toggleSavedBlueprintsSidebar()" class="fixed inset-0 bg-black/40 backdrop-blur-[1px] z-[999998] transition-opacity duration-300" style="display: none;"></div>
+
+    <!-- Left Side Panel: Saved Blueprints Drawer (سجل الرحلات) - Width 260px, Full Height -->
+    <div id="saved-blueprints-sidebar" class="fixed top-0 left-0 h-full w-[260px] bg-white border-r border-gray-200 shadow-2xl z-[999999] flex flex-col" style="transform: translateX(-100%); transition: transform 0.3s ease-in-out;" dir="rtl">
+        <div class="p-3.5 border-b bg-[#f1f6fb] flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
+                    <line x1="9" y1="3" x2="9" y2="21"></line>
+                    <line x1="15" y1="3" x2="15" y2="21"></line>
+                </svg>
+                <h3 class="font-bold text-xs text-gray-800">سجل الرحلات والمخططات</h3>
+            </div>
+            <button onclick="toggleSavedBlueprintsSidebar()" class="text-gray-400 hover:text-gray-700 text-xl font-bold p-1 leading-none cursor-pointer" type="button">&times;</button>
+        </div>
+
+        <div class="p-2.5 border-b bg-gray-50 flex justify-between items-center">
+            <button onclick="window.createNewBlueprint(); toggleSavedBlueprintsSidebar();" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer" type="button">
+                <span>+</span>
+                <span>مخطط جديد</span>
+            </button>
+        </div>
+
+        <div id="sidebar-blueprints-list" class="flex-1 overflow-y-auto p-2.5 flex flex-col gap-2">
+            <!-- Dynamic blueprint items loaded here -->
+        </div>
+
+        <div class="p-2.5 border-t bg-gray-50 text-[11px] text-gray-500 text-center">
+            مخزنة في قاعدة البيانات SQLite
+        </div>
+    </div>
+
     <div id="app-viewport">
         <!-- Toast Notification -->
         <div id="toast" class="fixed bottom-5 right-5 bg-gray-900 text-white text-sm px-4 py-3 rounded-lg shadow-lg hidden transition-opacity duration-300 z-50 flex items-center gap-2" dir="rtl">
             <span id="toast-message">تم الحفظ بنجاح</span>
-        </div>
-
-        <!-- Backdrop for Left Side Panel Drawer -->
-        <div id="sidebar-backdrop" onclick="toggleSavedBlueprintsSidebar()" class="fixed inset-0 bg-black/40 backdrop-blur-[1px] z-[999998] hidden transition-opacity duration-300"></div>
-
-        <!-- Left Side Panel: Saved Blueprints Drawer (سجل الرحلات) - Width 260px, Full Height -->
-        <div id="saved-blueprints-sidebar" class="fixed top-0 left-0 h-full w-[260px] bg-white border-r border-gray-200 shadow-2xl z-[999999] flex flex-col transition-transform duration-300 transform -translate-x-full" dir="rtl">
-            <div class="p-3.5 border-b bg-[#f1f6fb] flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
-                        <line x1="9" y1="3" x2="9" y2="21"></line>
-                        <line x1="15" y1="3" x2="15" y2="21"></line>
-                    </svg>
-                    <h3 class="font-bold text-xs text-gray-800">سجل الرحلات والمخططات</h3>
-                </div>
-                <button onclick="toggleSavedBlueprintsSidebar()" class="text-gray-400 hover:text-gray-700 text-xl font-bold p-1 leading-none cursor-pointer" type="button">&times;</button>
-            </div>
-
-            <div class="p-2.5 border-b bg-gray-50 flex justify-between items-center">
-                <button onclick="window.createNewBlueprint(); toggleSavedBlueprintsSidebar();" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer" type="button">
-                    <span>+</span>
-                    <span>مخطط جديد</span>
-                </button>
-            </div>
-
-            <div id="sidebar-blueprints-list" class="flex-1 overflow-y-auto p-2.5 flex flex-col gap-2">
-                <!-- Dynamic blueprint items loaded here -->
-            </div>
-
-            <div class="p-2.5 border-t bg-gray-50 text-[11px] text-gray-500 text-center">
-                مخزنة في قاعدة البيانات SQLite
-            </div>
         </div>
 
         <!-- Header Frame (Top - Fixed Height) -->
@@ -1704,16 +1704,21 @@
             const sidebar = document.getElementById('saved-blueprints-sidebar');
             const backdrop = document.getElementById('sidebar-backdrop');
             if (sidebar) {
-                const isHidden = sidebar.classList.contains('-translate-x-full');
-                if (isHidden) {
-                    sidebar.classList.remove('-translate-x-full');
-                    sidebar.classList.add('translate-x-0');
-                    if (backdrop) backdrop.classList.remove('hidden');
+                const isCurrentlyOpen = sidebar.classList.contains('sidebar-open') || sidebar.style.transform === 'translateX(0px)' || sidebar.style.transform === 'translateX(0)';
+                
+                if (!isCurrentlyOpen) {
+                    sidebar.classList.add('sidebar-open');
+                    sidebar.style.transform = 'translateX(0)';
+                    if (backdrop) {
+                        backdrop.style.display = 'block';
+                    }
                     window.renderSidebarBlueprints();
                 } else {
-                    sidebar.classList.remove('translate-x-0');
-                    sidebar.classList.add('-translate-x-full');
-                    if (backdrop) backdrop.classList.add('hidden');
+                    sidebar.classList.remove('sidebar-open');
+                    sidebar.style.transform = 'translateX(-100%)';
+                    if (backdrop) {
+                        backdrop.style.display = 'none';
+                    }
                 }
             }
         };
@@ -1723,7 +1728,7 @@
             const url = new URL(window.location.href);
             url.searchParams.set('id', id);
             window.history.replaceState({}, '', url);
-            window.renderSidebarBlueprints();
+            window.toggleSavedBlueprintsSidebar();
             showToast("تم فتح المخطط بنجاح!");
         };
 
