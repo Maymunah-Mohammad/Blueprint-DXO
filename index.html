@@ -1352,8 +1352,21 @@
         const durationUnitSelect = document.getElementById('duration-unit-select');
 
         addStepBtn.addEventListener('click', () => {
+            if (!activeCharacter && currentBlueprint.characters && currentBlueprint.characters.length > 0) {
+                const firstChar = typeof currentBlueprint.characters[0] === 'string' 
+                    ? currentBlueprint.characters[0] 
+                    : currentBlueprint.characters[0].name;
+                setActiveCharacter(firstChar);
+            }
+
             if (!activeCharacter) {
-                showToast("يرجى اختيار شخصية أولاً لتنفيذ هذه الخطوة");
+                showToast("يرجى إضافة شخصية أولاً بالضغط على (+ إضافة شخصية)");
+                const addCharBtn = document.getElementById('add-character-btn');
+                if (addCharBtn) {
+                    addCharBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    addCharBtn.classList.add('ring-2', 'ring-indigo-500', 'animate-pulse');
+                    setTimeout(() => addCharBtn.classList.remove('ring-2', 'ring-indigo-500', 'animate-pulse'), 3000);
+                }
                 return;
             }
 
