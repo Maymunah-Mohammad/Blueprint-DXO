@@ -473,7 +473,18 @@
             <!-- Center Workspace (Flex-1) on Right: holding Blueprint Frame + Actions Frame -->
             <div class="center-workspace">
                 <!-- Blueprint Frame: SCROLLS HORIZONTALLY AND VERTICALLY! -->
-                <div class="blueprint-frame" id="blueprint-frame">
+                <div class="blueprint-frame relative" id="blueprint-frame">
+                    <!-- Loading Overlay inside Blueprint Frame -->
+                    <div id="blueprint-loading-overlay" class="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-40 flex flex-col items-center justify-center gap-3 transition-opacity duration-300 hidden" dir="rtl">
+                        <div class="flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-2xl shadow-xl border border-gray-800 animate-in fade-in zoom-in-95 duration-200">
+                            <svg class="animate-spin h-5 w-5 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span id="blueprint-loading-text" class="text-xs font-bold tracking-wide">جاري المعالجة والتحميل...</span>
+                        </div>
+                    </div>
+
                     <div class="blueprint-container">
                         <!-- Customer Actions -->
                         <div class="section-box ca-row overflow-x-auto min-h-[190px]">
@@ -815,6 +826,23 @@
             }, 3000);
         }
 
+        // Loading Overlay Helper
+        window.showLoading = function(msg = "جاري المعالجة...") {
+            const overlay = document.getElementById('blueprint-loading-overlay');
+            const textEl = document.getElementById('blueprint-loading-text');
+            if (textEl) textEl.textContent = msg;
+            if (overlay) {
+                overlay.classList.remove('hidden');
+            }
+        };
+
+        window.hideLoading = function() {
+            const overlay = document.getElementById('blueprint-loading-overlay');
+            if (overlay) {
+                overlay.classList.add('hidden');
+            }
+        };
+
         // Set Active Character & Enable/Disable Steps Form
         function setActiveCharacter(charName) {
             activeCharacter = charName || "";
@@ -1073,6 +1101,7 @@
 
         // Load Blueprint from Server API
         async function loadBlueprintFromServer(id) {
+            window.showLoading("جاري تحميل المخطط والتفاصيل من قاعدة البيانات...");
             try {
                 const response = await fetch(`/api/blueprints/${id}`);
                 if (!response.ok) throw new Error("Not found");
@@ -1087,6 +1116,8 @@
             } catch (err) {
                 console.error("Load error:", err);
                 showToast("تعذر تحميل المخطط المطلوب");
+            } finally {
+                window.hideLoading();
             }
         }
 
@@ -1109,6 +1140,10 @@
                 const cid = getContainerIdByLayer(step.layer);
                 const container = document.getElementById(cid);
                 if (!container) return;
+
+                // Remove placeholder if present
+                const placeholder = container.querySelector('.empty-placeholder');
+                if (placeholder) placeholder.remove();
 
                 const card = document.createElement('div');
                 card.className = "bg-white border border-[#d2d6db] rounded-lg p-3 shadow-sm flex flex-col gap-2 min-w-[260px] max-w-[280px] relative text-right text-xs shrink-0 transition-all hover:shadow-md";
@@ -1159,6 +1194,13 @@
                 `;
 
                 container.appendChild(card);
+            });
+
+            containers.forEach(cid => {
+                const el = document.getElementById(cid);
+                if (el && el.children.length === 0) {
+                    el.innerHTML = `<div class="empty-placeholder text-gray-300 text-xs font-semibold py-3 px-4 border border-dashed border-gray-200 rounded-lg whitespace-nowrap opacity-60">لا يوجد خطوات في هذه الطبقة بعد</div>`;
+                }
             });
         }
 
@@ -1375,25 +1417,30 @@
                 timeUnit: unitVal
             };
 
-            currentBlueprint.steps.push(stepObj);
+            window.showLoading("جاري إضافة الخطوة إلى المخطط...");
 
-            // Ensure title if empty
-            ensureBlueprintTitle();
+            setTimeout(() => {
+                currentBlueprint.steps.push(stepObj);
 
-            renderBlueprint();
+                // Ensure title if empty
+                ensureBlueprintTitle();
 
-            // Mark unsaved state until user clicks Save
-            window.isBlueprintSaved = false;
-            if (window.updateActionsButtonsState) window.updateActionsButtonsState();
+                renderBlueprint();
 
-            // Reset Form Inputs
-            stepTitleInput.value = '';
-            evidenceInput.value = '';
-            activityDescInput.value = '';
-            painPointsInput.value = '';
-            durationValInput.value = '';
-            
-            showToast(`تمت إضافة الخطوة "${titleVal}"`);
+                // Mark unsaved state until user clicks Save
+                window.isBlueprintSaved = false;
+                if (window.updateActionsButtonsState) window.updateActionsButtonsState();
+
+                // Reset Form Inputs
+                stepTitleInput.value = '';
+                evidenceInput.value = '';
+                activityDescInput.value = '';
+                painPointsInput.value = '';
+                durationValInput.value = '';
+                
+                window.hideLoading();
+                showToast(`تمت إضافة الخطوة "${titleVal}"`);
+            }, 250);
         });
 
         // Global State & Save Handler
@@ -1473,29 +1520,32 @@
             }
 
             ensureBlueprintTitle();
+            window.showLoading("جاري التخزين في الجداول المخصصة لقاعدة البيانات...");
 
-            showToast("جاري التخزين في الجداول التابعة لقاعدة البيانات...");
-
-            // Save Characters to DB
-            if (currentBlueprint.characters && currentBlueprint.characters.length > 0) {
-                for (const charObj of currentBlueprint.characters) {
-                    const cName = typeof charObj === 'string' ? charObj : charObj.name;
-                    const cLayer = typeof charObj === 'string' ? 'Customer Actions' : charObj.layer;
-                    try {
-                        await fetch('/api/characters', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ name: cName, layer: cLayer })
-                        });
-                    } catch(e) {}
+            try {
+                // Save Characters to DB
+                if (currentBlueprint.characters && currentBlueprint.characters.length > 0) {
+                    for (const charObj of currentBlueprint.characters) {
+                        const cName = typeof charObj === 'string' ? charObj : charObj.name;
+                        const cLayer = typeof charObj === 'string' ? 'Customer Actions' : charObj.layer;
+                        try {
+                            await fetch('/api/characters', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ name: cName, layer: cLayer })
+                            });
+                        } catch(e) {}
+                    }
                 }
-            }
 
-            // Save Blueprint & Steps & Connections to DB
-            await saveBlueprintToServer(true);
-            window.isBlueprintSaved = true;
-            window.updateActionsButtonsState();
-            showToast("تم حفظ العمل بنجاح داخل الجداول المخصصة!");
+                // Save Blueprint & Steps & Connections to DB
+                await saveBlueprintToServer(true);
+                window.isBlueprintSaved = true;
+                window.updateActionsButtonsState();
+                showToast("تم حفظ العمل بنجاح داخل الجداول المخصصة!");
+            } finally {
+                window.hideLoading();
+            }
         };
 
         // Action Buttons: Manual Save JSON
