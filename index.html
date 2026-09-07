@@ -740,9 +740,13 @@
             if (nameVal.length > 0 && layerVal !== "") {
                 saveBtn.disabled = false;
                 saveBtn.removeAttribute('disabled');
+                saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                saveBtn.classList.add('cursor-pointer');
             } else {
                 saveBtn.disabled = true;
                 saveBtn.setAttribute('disabled', 'disabled');
+                saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                saveBtn.classList.remove('cursor-pointer');
             }
         };
 
@@ -753,13 +757,16 @@
 
             if (modal) {
                 modal.style.setProperty('display', 'flex', 'important');
-                if (input) {
-                    input.value = '';
-                    input.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
-                }
-                if (select) {
-                    select.value = '';
-                    window.onModalLayerChange(select);
+                if (window.editingCharacterIndex === null || window.editingCharacterIndex === undefined) {
+                    if (input) {
+                        input.value = '';
+                        input.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
+                    }
+                    if (select) {
+                        select.value = 'Customer Actions';
+                        select.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
+                        window.onModalLayerChange(select);
+                    }
                 }
                 window.validateCharacterModalInputs();
                 if (input) {
@@ -1281,7 +1288,6 @@
 
             if (window.editingCharacterIndex !== null && window.editingCharacterIndex !== undefined && window.editingCharacterIndex >= 0) {
                 const oldObj = currentBlueprint.characters[window.editingCharacterIndex];
-                const oldName = typeof oldObj === 'string' ? oldObj : (oldObj ? oldObj.name : '');
                 currentBlueprint.characters[window.editingCharacterIndex] = { name: cleanName, layer: cleanLayer };
                 window.editingCharacterIndex = null;
             } else {
@@ -1298,41 +1304,21 @@
             renderCharacters();
             setActiveCharacter(cleanName);
 
+            try {
+                await fetch('/api/characters', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: cleanName, layer: cleanLayer })
+                });
+            } catch(e) {}
+
             // Mark unsaved state
             window.isBlueprintSaved = false;
             if (window.updateActionsButtonsState) window.updateActionsButtonsState();
             showToast(`تمت إضافة الشخصية "${cleanName}"`);
         };
 
-        window.openCharacterModal = function() {
-            const modal = document.getElementById('character-modal');
-            const input = document.getElementById('new-character-name-input');
-            const select = document.getElementById('new-character-layer-select');
-            if (modal) {
-                modal.style.setProperty('display', 'flex', 'important');
-                if (window.editingCharacterIndex === null || window.editingCharacterIndex === undefined) {
-                    if (input) {
-                        input.value = '';
-                        input.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
-                    }
-                    if (select) {
-                        select.value = '';
-                        select.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
-                        window.onModalLayerChange(select);
-                    }
-                }
-                if (input) {
-                    setTimeout(() => input.focus(), 100);
-                }
-            }
-        };
 
-        window.hideCharacterModal = function() {
-            const modal = document.getElementById('character-modal');
-            if (modal) {
-                modal.style.setProperty('display', 'none', 'important');
-            }
-        };
 
         if (characterSelect) {
             characterSelect.addEventListener('change', () => {
@@ -1351,7 +1337,7 @@
         const durationValInput = document.getElementById('duration-val-input');
         const durationUnitSelect = document.getElementById('duration-unit-select');
 
-        addStepBtn.addEventListener('click', () => {
+        addStepBtn.addEventListener('click', async () => {
             if (!activeCharacter && currentBlueprint.characters && currentBlueprint.characters.length > 0) {
                 const firstChar = typeof currentBlueprint.characters[0] === 'string' 
                     ? currentBlueprint.characters[0] 
@@ -1360,14 +1346,7 @@
             }
 
             if (!activeCharacter) {
-                showToast("يرجى إضافة شخصية أولاً بالضغط على (+ إضافة شخصية)");
-                const addCharBtn = document.getElementById('add-character-btn');
-                if (addCharBtn) {
-                    addCharBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    addCharBtn.classList.add('ring-2', 'ring-indigo-500', 'animate-pulse');
-                    setTimeout(() => addCharBtn.classList.remove('ring-2', 'ring-indigo-500', 'animate-pulse'), 3000);
-                }
-                return;
+                await window.addCharacter("العميل الرئيسي", "Customer Actions");
             }
 
             const titleVal = stepTitleInput.value.trim();
@@ -1816,6 +1795,13 @@
                     window.openCharacterModal();
                 };
             }
+
+            const nameInput = document.getElementById('new-character-name-input');
+            if (nameInput) {
+                nameInput.addEventListener('input', window.validateCharacterModalInputs);
+                nameInput.addEventListener('keyup', window.validateCharacterModalInputs);
+            }
+
             await loadCharactersFromDatabase();
             renderCharacters();
             const urlParams = new URLSearchParams(window.location.search);
