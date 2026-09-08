@@ -491,7 +491,20 @@
                         </div>
                     </div>
 
-                    <div class="blueprint-container">
+                    <div class="blueprint-container relative" id="blueprint-container">
+                        <!-- Dynamic SVG Connections Overlay for Pre-step Arrows -->
+                        <svg id="blueprint-connections-svg" class="absolute inset-0 w-full h-full pointer-events-none z-30" style="overflow: visible;">
+                            <defs>
+                                <marker id="arrow-solid" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#1e293b" />
+                                </marker>
+                                <marker id="arrow-dashed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#4f46e5" />
+                                </marker>
+                            </defs>
+                            <g id="svg-connections-group"></g>
+                        </svg>
+
                         <!-- Customer Actions -->
                         <div class="section-box ca-row">
                             <div class="label-box ca-label flex-shrink-0">
@@ -1239,6 +1252,7 @@
 
                 const card = document.createElement('div');
                 card.className = "bg-white border border-[#d2d6db] rounded-2xl shadow-sm flex flex-col min-w-[270px] max-w-[290px] relative text-right text-xs shrink-0 transition-all hover:shadow-md overflow-hidden group";
+                card.setAttribute('data-step-id', step.id);
 
                 let charHtml = '';
                 if (step.character) {
@@ -1337,7 +1351,111 @@
                     el.innerHTML = `<div class="empty-placeholder text-gray-300 text-xs font-semibold py-3 px-4 border border-dashed border-gray-200 rounded-lg whitespace-nowrap opacity-60">لا يوجد خطوات في هذه الطبقة بعد</div>`;
                 }
             });
+
+            setTimeout(() => {
+                if (window.renderCanvasConnections) window.renderCanvasConnections();
+            }, 60);
         }
+
+        // Render Connections (Sequential & Parallel Pre-step Arrows)
+        window.renderCanvasConnections = function() {
+            const svgGroup = document.getElementById('svg-connections-group');
+            const container = document.getElementById('blueprint-container');
+            if (!svgGroup || !container) return;
+
+            svgGroup.innerHTML = '';
+
+            const containerRect = container.getBoundingClientRect();
+
+            (currentBlueprint.steps || []).forEach(step => {
+                if (!step.pre_step_id) return;
+
+                const preCard = document.querySelector(`[data-step-id="${step.pre_step_id}"]`);
+                const currCard = document.querySelector(`[data-step-id="${step.id}"]`);
+
+                if (!preCard || !currCard) return;
+
+                const r1 = preCard.getBoundingClientRect();
+                const r2 = currCard.getBoundingClientRect();
+
+                const pre = {
+                    left: r1.left - containerRect.left,
+                    right: r1.right - containerRect.left,
+                    top: r1.top - containerRect.top,
+                    bottom: r1.bottom - containerRect.top,
+                    centerX: (r1.left + r1.right) / 2 - containerRect.left,
+                    centerY: (r1.top + r1.bottom) / 2 - containerRect.top
+                };
+
+                const curr = {
+                    left: r2.left - containerRect.left,
+                    right: r2.right - containerRect.left,
+                    top: r2.top - containerRect.top,
+                    bottom: r2.bottom - containerRect.top,
+                    centerX: (r2.left + r2.right) / 2 - containerRect.left,
+                    centerY: (r2.top + r2.bottom) / 2 - containerRect.top
+                };
+
+                const isParallel = step.relation_type === 'parallel';
+
+                let startX, startY, endX, endY;
+                let pathD = '';
+
+                if (!isParallel) {
+                    // Sequential: Solid line arrow from RIGHT side of pre-step going to LEFT side of step
+                    startX = pre.right;
+                    startY = pre.centerY;
+                    endX = curr.left;
+                    endY = curr.centerY;
+
+                    const deltaX = Math.max(20, Math.abs(endX - startX) / 2);
+                    pathD = `M ${startX} ${startY} C ${startX + deltaX} ${startY}, ${endX - deltaX} ${endY}, ${endX} ${endY}`;
+                } else {
+                    // Parallel: Dashed line arrow
+                    if (pre.centerY < curr.centerY - 20) {
+                        // Pre-step is ABOVE step -> start from BOTTOM of pre-step, end at TOP of step
+                        startX = pre.centerX;
+                        startY = pre.bottom;
+                        endX = curr.centerX;
+                        endY = curr.top;
+                    } else if (pre.centerY > curr.centerY + 20) {
+                        // Pre-step is BELOW step -> start from TOP of pre-step, end at BOTTOM of step
+                        startX = pre.centerX;
+                        startY = pre.top;
+                        endX = curr.centerX;
+                        endY = curr.bottom;
+                    } else {
+                        // Pre-step is in SAME layer -> start from bottom to bottom
+                        startX = pre.centerX;
+                        startY = pre.bottom;
+                        endX = curr.centerX;
+                        endY = curr.bottom;
+                    }
+
+                    const deltaY = Math.max(20, Math.abs(endY - startY) / 2);
+                    pathD = `M ${startX} ${startY} C ${startX} ${startY + (endY >= startY ? deltaY : -deltaY)}, ${endX} ${endY + (endY >= startY ? -deltaY : deltaY)}, ${endX} ${endY}`;
+                }
+
+                const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                pathEl.setAttribute('d', pathD);
+                pathEl.setAttribute('fill', 'none');
+                pathEl.setAttribute('stroke', isParallel ? '#4f46e5' : '#1e293b');
+                pathEl.setAttribute('stroke-width', '2.5');
+
+                if (isParallel) {
+                    pathEl.setAttribute('stroke-dasharray', '6,6');
+                    pathEl.setAttribute('marker-end', 'url(#arrow-dashed)');
+                } else {
+                    pathEl.setAttribute('marker-end', 'url(#arrow-solid)');
+                }
+
+                svgGroup.appendChild(pathEl);
+            });
+        };
+
+        window.addEventListener('resize', () => {
+            if (window.renderCanvasConnections) window.renderCanvasConnections();
+        });
 
         window.editingStepIndex = null;
 
