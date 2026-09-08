@@ -1237,19 +1237,6 @@
                 const placeholder = container.querySelector('.empty-placeholder');
                 if (placeholder) placeholder.remove();
 
-                // Append flow arrow if there are previous steps in this layer
-                if (container.children.length > 0) {
-                    const arrowEl = document.createElement('div');
-                    arrowEl.className = "flex items-center justify-center shrink-0 text-gray-800 self-center px-1 select-none";
-                    arrowEl.innerHTML = `
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                            <polyline points="12 5 19 12 12 19"></polyline>
-                        </svg>
-                    `;
-                    container.appendChild(arrowEl);
-                }
-
                 const card = document.createElement('div');
                 card.className = "bg-white border border-[#d2d6db] rounded-2xl shadow-sm flex flex-col min-w-[270px] max-w-[290px] relative text-right text-xs shrink-0 transition-all hover:shadow-md overflow-hidden group";
                 card.setAttribute('data-step-id', step.id);
@@ -1709,10 +1696,14 @@
 
             const preStepSelect = document.getElementById('pre-step-select');
             const stepRelationSelect = document.getElementById('step-relation-select');
-            const preStepVal = preStepSelect ? preStepSelect.value : '';
+            let preStepVal = preStepSelect ? preStepSelect.value : '';
             const relationVal = stepRelationSelect ? stepRelationSelect.value : 'next';
 
             const isEditing = window.editingStepIndex !== null && window.editingStepIndex !== undefined && window.editingStepIndex >= 0;
+
+            if (!preStepVal && !isEditing && currentBlueprint.steps && currentBlueprint.steps.length > 0) {
+                preStepVal = currentBlueprint.steps[currentBlueprint.steps.length - 1].id;
+            }
 
             const stepObj = {
                 id: isEditing ? (currentBlueprint.steps[window.editingStepIndex].id || ('step-' + Date.now())) : ('step-' + Date.now()),
