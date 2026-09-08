@@ -1419,29 +1419,58 @@
                 let pathD = '';
 
                 if (!isParallel) {
-                    // Sequential: Flow arrow exiting pre.right going into curr.left
-                    if (curr.centerX >= pre.left) {
-                        // Standard sequential step (curr is ahead or aligned to the right)
-                        startX = pre.right;
-                        startY = pre.centerY;
-                        endX = curr.left;
-                        endY = curr.centerY;
-                    } else {
-                        // Curr is to the left of Pre
-                        startX = pre.left;
-                        startY = pre.centerY;
-                        endX = curr.right;
-                        endY = curr.centerY;
-                    }
+                    const isSameY = Math.abs(pre.centerY - curr.centerY) < 40;
 
-                    const isSameY = Math.abs(startY - endY) < 15;
-                    if (isSameY && startX < endX) {
-                        // Straight horizontal arrow line for adjacent steps in same layer
+                    if (isSameY) {
+                        // Same layer: Straight horizontal line in the gap between cards
+                        if (pre.right <= curr.left + 15) {
+                            startX = pre.right;
+                            startY = pre.centerY;
+                            endX = curr.left;
+                            endY = curr.centerY;
+                        } else {
+                            startX = pre.left;
+                            startY = pre.centerY;
+                            endX = curr.right;
+                            endY = curr.centerY;
+                        }
                         pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
                     } else {
-                        // Smooth S-curve for cross-layer or offset steps
-                        const deltaX = Math.max(35, Math.abs(endX - startX) / 2);
-                        pathD = `M ${startX} ${startY} C ${startX + deltaX} ${startY}, ${endX - deltaX} ${endY}, ${endX} ${endY}`;
+                        // Different layers (cross-path steps)
+                        if (curr.left >= pre.right - 10) {
+                            // Curr is to the right of Pre -> exit pre.right, enter curr.left in open gap
+                            startX = pre.right;
+                            startY = pre.centerY;
+                            endX = curr.left;
+                            endY = curr.centerY;
+                            const deltaX = Math.max(35, Math.abs(endX - startX) / 2);
+                            pathD = `M ${startX} ${startY} C ${startX + deltaX} ${startY}, ${endX - deltaX} ${endY}, ${endX} ${endY}`;
+                        } else if (pre.left >= curr.right - 10) {
+                            // Pre is to the right of Curr -> exit pre.left, enter curr.right
+                            startX = pre.left;
+                            startY = pre.centerY;
+                            endX = curr.right;
+                            endY = curr.centerY;
+                            const deltaX = Math.max(35, Math.abs(startX - endX) / 2);
+                            pathD = `M ${startX} ${startY} C ${startX - deltaX} ${startY}, ${endX + deltaX} ${endY}, ${endX} ${endY}`;
+                        } else {
+                            // Horizontally overlapping cards across layers -> connect via top/bottom to NEVER cover cards!
+                            if (pre.centerY > curr.centerY) {
+                                // Pre is below Curr -> Exit pre.top, Enter curr.bottom
+                                startX = pre.centerX;
+                                startY = pre.top;
+                                endX = curr.centerX;
+                                endY = curr.bottom;
+                            } else {
+                                // Pre is above Curr -> Exit pre.bottom, Enter curr.top
+                                startX = pre.centerX;
+                                startY = pre.bottom;
+                                endX = curr.centerX;
+                                endY = curr.top;
+                            }
+                            const deltaY = Math.max(25, Math.abs(endY - startY) / 2);
+                            pathD = `M ${startX} ${startY} C ${startX} ${startY + (endY >= startY ? deltaY : -deltaY)}, ${endX} ${endY + (endY >= startY ? -deltaY : deltaY)}, ${endX} ${endY}`;
+                        }
                     }
                 } else {
                     // Parallel: Dashed line arrow
