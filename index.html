@@ -1465,21 +1465,25 @@
                     } else {
                         // Different layers (cross-path steps)
                         if (curr.left >= pre.right - 10) {
-                            // Curr is to the right of Pre -> 100% Straight line
+                            // Curr is to the right of Pre -> exit pre.right, enter curr.left using clean right-angled elbow (HV)
                             startX = pre.right;
                             startY = pre.centerY + outOffset;
                             endX = curr.left;
                             endY = curr.centerY + inOffset;
-                            pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
+
+                            const midX = startX + (endX - startX) / 2;
+                            pathD = `M ${startX} ${startY} L ${midX} ${startY} L ${midX} ${endY} L ${endX} ${endY}`;
                         } else if (pre.left >= curr.right - 10) {
-                            // Pre is to the right of Curr -> 100% Straight line
+                            // Pre is to the right of Curr -> exit pre.left, enter curr.right using clean right-angled elbow (HV)
                             startX = pre.left;
                             startY = pre.centerY + outOffset;
                             endX = curr.right;
                             endY = curr.centerY + inOffset;
-                            pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
+
+                            const midX = startX - (startX - endX) / 2;
+                            pathD = `M ${startX} ${startY} L ${midX} ${startY} L ${midX} ${endY} L ${endX} ${endY}`;
                         } else {
-                            // Steps are horizontally overlapping / on top of each other across layers -> Smooth curve
+                            // Steps are horizontally overlapping / on top of each other across layers
                             if (pre.centerY > curr.centerY) {
                                 // Pre is below Curr -> Exit pre.top, Enter curr.bottom
                                 startX = pre.centerX + outOffset;
@@ -1493,12 +1497,14 @@
                                 endX = curr.centerX + inOffset;
                                 endY = curr.top;
                             }
-                            const isSameX = Math.abs(startX - endX) < 10;
+                            const isSameX = Math.abs(startX - endX) < 3;
                             if (isSameX) {
-                                pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
+                                // Perfectly vertical straight line 100%
+                                pathD = `M ${startX} ${startY} L ${startX} ${endY}`;
                             } else {
-                                const deltaY = Math.max(25, Math.abs(endY - startY) / 2);
-                                pathD = `M ${startX} ${startY} C ${startX} ${startY + (endY >= startY ? deltaY : -deltaY)}, ${endX} ${endY + (endY >= startY ? -deltaY : deltaY)}, ${endX} ${endY}`;
+                                // Right-angled step (VH) instead of tilted diagonal line!
+                                const midY = startY + (endY - startY) / 2;
+                                pathD = `M ${startX} ${startY} L ${startX} ${midY} L ${endX} ${midY} L ${endX} ${endY}`;
                             }
                         }
                     }
@@ -1521,12 +1527,12 @@
                         endY = curr.bottom;
                     }
 
-                    const isSameX = Math.abs(startX - endX) < 10;
+                    const isSameX = Math.abs(startX - endX) < 3;
                     if (isSameX) {
-                        pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
+                        pathD = `M ${startX} ${startY} L ${startX} ${endY}`;
                     } else {
-                        const deltaY = Math.max(20, Math.abs(endY - startY) / 2);
-                        pathD = `M ${startX} ${startY} C ${startX} ${startY + (endY >= startY ? deltaY : -deltaY)}, ${endX} ${endY + (endY >= startY ? -deltaY : deltaY)}, ${endX} ${endY}`;
+                        const midY = startY + (endY - startY) / 2;
+                        pathD = `M ${startX} ${startY} L ${startX} ${midY} L ${endX} ${midY} L ${endX} ${endY}`;
                     }
                 }
 
