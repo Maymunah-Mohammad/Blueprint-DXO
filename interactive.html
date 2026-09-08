@@ -465,21 +465,21 @@
                 const r2 = currCard.getBoundingClientRect();
 
                 const pre = {
-                    left: r1.left - containerRect.left,
-                    right: r1.right - containerRect.left,
-                    top: r1.top - containerRect.top,
-                    bottom: r1.bottom - containerRect.top,
-                    centerX: (r1.left + r1.right) / 2 - containerRect.left,
-                    centerY: (r1.top + r1.bottom) / 2 - containerRect.top
+                    left: (r1.left - containerRect.left) / scale,
+                    right: (r1.right - containerRect.left) / scale,
+                    top: (r1.top - containerRect.top) / scale,
+                    bottom: (r1.bottom - containerRect.top) / scale,
+                    centerX: ((r1.left + r1.right) / 2 - containerRect.left) / scale,
+                    centerY: ((r1.top + r1.bottom) / 2 - containerRect.top) / scale
                 };
 
                 const curr = {
-                    left: r2.left - containerRect.left,
-                    right: r2.right - containerRect.left,
-                    top: r2.top - containerRect.top,
-                    bottom: r2.bottom - containerRect.top,
-                    centerX: (r2.left + r2.right) / 2 - containerRect.left,
-                    centerY: (r2.top + r2.bottom) / 2 - containerRect.top
+                    left: (r2.left - containerRect.left) / scale,
+                    right: (r2.right - containerRect.left) / scale,
+                    top: (r2.top - containerRect.top) / scale,
+                    bottom: (r2.bottom - containerRect.top) / scale,
+                    centerX: ((r2.left + r2.right) / 2 - containerRect.left) / scale,
+                    centerY: ((r2.top + r2.bottom) / 2 - containerRect.top) / scale
                 };
 
                 const isParallel = step.relation_type === 'parallel';
