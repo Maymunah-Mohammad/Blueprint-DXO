@@ -1195,10 +1195,13 @@
             const preSelect = document.getElementById('pre-step-select');
             if (!preSelect) return;
             const currentVal = preSelect.value;
-            preSelect.innerHTML = '<option value="">-- بدون خطوة سابقة (بداية تسلسل جديد) --</option>';
+            preSelect.innerHTML = '<option value="">-- بدون خطوة سابقة (إزالة السهم) --</option>';
 
             if (currentBlueprint.steps && currentBlueprint.steps.length > 0) {
                 currentBlueprint.steps.forEach((s, i) => {
+                    if (window.editingStepIndex !== null && window.editingStepIndex !== undefined && currentBlueprint.steps[window.editingStepIndex] && currentBlueprint.steps[window.editingStepIndex].id === s.id) {
+                        return;
+                    }
                     const opt = document.createElement('option');
                     opt.value = s.id;
                     const charInfo = s.character ? ` [${s.character}]` : '';
@@ -1207,9 +1210,30 @@
                 });
             }
 
-            if (currentVal && Array.from(preSelect.options).some(o => o.value === currentVal)) {
+            if (currentVal !== undefined && currentVal !== null && Array.from(preSelect.options).some(o => o.value === currentVal)) {
                 preSelect.value = currentVal;
             }
+        };
+
+        // Quick Function to Remove Arrow / Unlink Pre-step from a step
+        window.removeStepArrow = async function(idx) {
+            if (!currentBlueprint.steps || !currentBlueprint.steps[idx]) return;
+            const stepName = currentBlueprint.steps[idx].title || 'الخطوة';
+            currentBlueprint.steps[idx].pre_step_id = '';
+
+            if (window.editingStepIndex === idx) {
+                const preStepSelect = document.getElementById('pre-step-select');
+                if (preStepSelect) preStepSelect.value = '';
+            }
+
+            window.showLoading("جاري إزالة السهم وتحديث المخطط...");
+            setTimeout(async () => {
+                await saveCurrentBlueprint();
+                renderBlueprint();
+                if (window.renderCanvasConnections) window.renderCanvasConnections();
+                window.hideLoading();
+                showToast(`تم إزالة السهم من الخطوة "${stepName}" بنجاح`);
+            }, 250);
         };
 
         // Render Cards in Rows with Color-Coded Persona Badges
@@ -1267,14 +1291,20 @@
                     if (targetPre) {
                         const preTitle = targetPre.title || 'خطوة سابقة';
                         if (step.relation_type === 'parallel') {
-                            relationBadgeHtml = `<div class="bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center gap-1 w-fit">
-                                <span>⚡ بالتوازي مع:</span>
-                                <span class="font-bold">${preTitle}</span>
+                            relationBadgeHtml = `<div class="bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center justify-between gap-1 w-full">
+                                <div class="flex items-center gap-1 truncate">
+                                    <span>⚡ بالتوازي مع:</span>
+                                    <span class="font-bold">${preTitle}</span>
+                                </div>
+                                <button onclick="removeStepArrow(${idx})" class="text-indigo-400 hover:text-red-600 font-bold px-1 rounded hover:bg-indigo-100 transition-colors shrink-0" title="إزالة السهم (فك الارتباط)">✕</button>
                             </div>`;
                         } else {
-                            relationBadgeHtml = `<div class="bg-blue-50 text-blue-700 border border-blue-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center gap-1 w-fit">
-                                <span>🔗 يتبع الخطوة:</span>
-                                <span class="font-bold">${preTitle}</span>
+                            relationBadgeHtml = `<div class="bg-blue-50 text-blue-700 border border-blue-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center justify-between gap-1 w-full">
+                                <div class="flex items-center gap-1 truncate">
+                                    <span>🔗 يتبع الخطوة:</span>
+                                    <span class="font-bold">${preTitle}</span>
+                                </div>
+                                <button onclick="removeStepArrow(${idx})" class="text-blue-400 hover:text-red-600 font-bold px-1 rounded hover:bg-blue-100 transition-colors shrink-0" title="إزالة السهم (فك الارتباط)">✕</button>
                             </div>`;
                         }
                     }
@@ -1482,6 +1512,7 @@
             if (!step) return;
 
             window.editingStepIndex = idx;
+            window.updatePreStepDropdown();
 
             const stepTitleInput = document.getElementById('step-title-input');
             const evidenceInput = document.getElementById('evidence-input');
