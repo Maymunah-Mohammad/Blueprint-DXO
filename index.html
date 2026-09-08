@@ -586,7 +586,7 @@
 
                     <div class="h-5 w-px bg-gray-200 mx-1 shrink-0"></div>
 
-                    <button class="action-btn other-action-btn opacity-40 cursor-not-allowed pointer-events-none" disabled type="button">
+                    <button id="interactive-blueprint-btn" onclick="openInteractivePage()" class="action-btn other-action-btn opacity-40 cursor-not-allowed pointer-events-none" disabled type="button">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                             <line x1="9" y1="3" x2="9" y2="21"></line>
@@ -2030,6 +2030,28 @@
                 e.target.value = '';
             });
         }
+        // Action Buttons: Open Interactive Blueprint Page
+        window.openInteractivePage = async function() {
+            if (!currentBlueprint.steps || currentBlueprint.steps.length === 0) {
+                showToast("يرجى إضافة خطوات أولاً لعرض المخطط التفاعلي");
+                return;
+            }
+
+            ensureBlueprintTitle();
+            window.showLoading("جاري تحضير العرض التفاعلي...");
+            try {
+                localStorage.setItem('current_blueprint_backup', JSON.stringify(currentBlueprint));
+                await saveBlueprintToServer(false);
+            } catch(e) {
+                console.error("Auto-save error before interactive view:", e);
+            } finally {
+                window.hideLoading();
+            }
+
+            const targetUrl = `interactive.html?id=${encodeURIComponent(currentBlueprint.id)}`;
+            window.open(targetUrl, '_blank');
+        };
+
         // Action Buttons: Copy Shareable Link ("نسخ الرابط")
         const copyLinkBtn = document.getElementById('copy-link-btn');
         if (copyLinkBtn) {

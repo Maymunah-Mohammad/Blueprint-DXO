@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المخطط التفاعلي - DXO Service Blueprint</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Tajawal', sans-serif;
+            user-select: none;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        /* Blueprint Blocks & Rows */
+        .section-box {
+            display: flex;
+            align-items: stretch;
+            height: auto;
+            min-height: 120px;
+            border-radius: 4px;
+            position: relative;
+            direction: ltr;
+            overflow: visible;
+        }
+
+        .label-box {
+            width: 223px;
+            height: auto;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            margin-right: 10px;
+            margin-left: 0;
+            border-radius: 0;
+            align-self: stretch;
+            padding: 16px 8px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 30;
+        }
+
+        .line-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            height: 34px;
+            width: 100%;
+            direction: ltr;
+        }
+        .line-dash {
+            width: 100%;
+            border-bottom: 2px dashed #94a3b8;
+            position: absolute;
+            top: 50%;
+            z-index: 1;
+        }
+        .line-text {
+            background-color: #ffffff;
+            padding: 4px 14px;
+            border-radius: 20px;
+            border: 1px dashed #cbd5e1;
+            font-weight: 800;
+            font-size: 11px;
+            color: #475569;
+            z-index: 2;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        /* Row Color Styling */
+        .ca-row { background-color: #edf5fd; border: 1px solid #d0e3f7; }
+        .ca-label { background-color: #b0d1c6; color: #0369a1; }
+        .fs-row { background-color: #edfbf7; border: 1px solid #cceee5; }
+        .fs-label { background-color: #fce3ce; color: #047857; }
+        .bs-row { background-color: #fef8ed; border: 1px solid #f9e5c9; }
+        .bs-label { background-color: #f9d3b4; color: #b45309; }
+        .sp-row { background-color: #f3f4fd; border: 1px solid #dcdff9; }
+        .sp-label { background-color: #b1d2e7; color: #3730a3; }
+
+        .arabic-text { font-size: 13px; font-weight: 800; }
+        .english-text { font-size: 10px; font-weight: 700; opacity: 0.8; }
+
+        .blueprint-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 24px;
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);
+            width: max-content;
+            min-width: 1000px;
+        }
+
+        .viewport-container {
+            width: 100vw;
+            height: calc(100vh - 64px);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            background: radial-gradient(circle, #1e293b 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        .viewport-container:active {
+            cursor: grabbing;
+        }
+
+        .canvas-transform-wrapper {
+            transform-origin: center center;
+            transition: transform 0.05s linear;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div class="flex flex-col h-screen w-screen overflow-hidden">
+        <!-- Header Bar: Title + Zoom Toolbar -->
+        <header class="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between z-50 shrink-0 shadow-lg" dir="rtl">
+            <div class="flex items-center gap-4">
+                <div class="bg-indigo-600/30 border border-indigo-500/40 p-2 rounded-xl text-indigo-400 flex items-center justify-center">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
+                        <line x1="9" y1="3" x2="9" y2="21"></line>
+                        <line x1="15" y1="3" x2="15" y2="21"></line>
+                    </svg>
+                </div>
+                <div class="flex flex-col">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-slate-400">اسم الرحلة:</span>
+                        <h1 id="journey-title-display" class="text-base font-extrabold text-white truncate max-w-md">رحلة العميل الرئيسي</h1>
+                    </div>
+                    <span class="text-[11px] text-slate-400 font-medium">عرض المخطط التفاعلي كامل الشاشة بدقة عالية - اسحب للتحرك واستخدم عجلة الماوس للتكبير</span>
+                </div>
+            </div>
+
+            <!-- Toolbar Controls -->
+            <div class="flex items-center gap-2 bg-slate-800/90 p-1.5 rounded-2xl border border-slate-700/80 shadow-inner">
+                <button type="button" onclick="zoomInteractive(-0.15)" class="p-2 text-slate-200 hover:text-white hover:bg-slate-700 rounded-xl transition-colors cursor-pointer text-xs font-bold flex items-center gap-1" title="تصغير (Zoom Out)">
+                    <span>🔍−</span>
+                </button>
+
+                <span id="zoom-level-text" class="text-xs font-mono font-extrabold text-indigo-300 min-w-[55px] text-center px-1">100%</span>
+
+                <button type="button" onclick="zoomInteractive(+0.15)" class="p-2 text-slate-200 hover:text-white hover:bg-slate-700 rounded-xl transition-colors cursor-pointer text-xs font-bold flex items-center gap-1" title="تكبير (Zoom In)">
+                    <span>🔍+</span>
+                </button>
+
+                <div class="h-4 w-px bg-slate-700 mx-1"></div>
+
+                <button type="button" onclick="fitToScreen()" class="px-3 py-1.5 text-xs font-bold text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/80 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 border border-indigo-500/40" title="احتواء المخطط كاملاً في الشاشة بدون سكرول">
+                    <span>🎯</span>
+                    <span>احتواء الشاشة</span>
+                </button>
+
+                <div class="h-4 w-px bg-slate-700 mx-1"></div>
+
+                <button type="button" onclick="goToEditor()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all cursor-pointer text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95">
+                    <span>✏️</span>
+                    <span>تعديل المخطط</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Viewport (Zero Scrollbars, Pan & Zoom) -->
+        <main id="viewport" class="viewport-container" onwheel="onWheelZoom(event)">
+            <div id="canvas-wrapper" class="canvas-transform-wrapper">
+                <div class="blueprint-container relative" id="blueprint-container">
+                    <!-- Dynamic SVG Connections Overlay for Pre-step Arrows -->
+                    <svg id="blueprint-connections-svg" class="absolute inset-0 w-full h-full pointer-events-none z-10" style="overflow: visible;">
+                        <defs>
+                            <marker id="arrow-solid" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
+                            </marker>
+                            <marker id="arrow-dashed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb" />
+                            </marker>
+                        </defs>
+                        <g id="svg-connections-group"></g>
+                    </svg>
+
+                    <!-- Customer Actions -->
+                    <div class="section-box ca-row">
+                        <div class="label-box ca-label">
+                            <span class="arabic-text" dir="rtl">أفعال العميل</span>
+                            <span class="english-text">(Customer Actions)</span>
+                        </div>
+                        <div class="steps-cards-container flex gap-10 p-3.5 flex-1 items-center" id="cards-ca" dir="ltr"></div>
+                    </div>
+
+                    <!-- Line of Interaction -->
+                    <div class="line-container">
+                        <div class="line-text">
+                            <span dir="rtl">خط التفاعل</span>
+                            <span>(LINE OF INTERACTION)</span>
+                        </div>
+                        <div class="line-dash"></div>
+                    </div>
+
+                    <!-- Frontstage -->
+                    <div class="section-box fs-row">
+                        <div class="label-box fs-label">
+                            <span class="arabic-text" dir="rtl">الواجهة الأمامية / الخط الأمامي</span>
+                            <span class="english-text">(Frontstage)</span>
+                        </div>
+                        <div class="steps-cards-container flex gap-10 p-3.5 flex-1 items-center" id="cards-fs" dir="ltr"></div>
+                    </div>
+
+                    <!-- Line of Visibility -->
+                    <div class="line-container">
+                        <div class="line-text">
+                            <span dir="rtl">خط الرؤية</span>
+                            <span>(LINE OF VISIBILITY)</span>
+                        </div>
+                        <div class="line-dash"></div>
+                    </div>
+
+                    <!-- Backstage -->
+                    <div class="section-box bs-row">
+                        <div class="label-box bs-label">
+                            <span class="arabic-text" dir="rtl">الكواليس / الخط الخلفي</span>
+                            <span class="english-text">(Backstage)</span>
+                        </div>
+                        <div class="steps-cards-container flex gap-10 p-3.5 flex-1 items-center" id="cards-bs" dir="ltr"></div>
+                    </div>
+
+                    <!-- Line of Internal Interaction -->
+                    <div class="line-container">
+                        <div class="line-text">
+                            <span dir="rtl">خط التفاعل الداخلي</span>
+                            <span>(LINE OF INTERNAL INTERACTION)</span>
+                        </div>
+                        <div class="line-dash"></div>
+                    </div>
+
+                    <!-- Support Processes -->
+                    <div class="section-box sp-row">
+                        <div class="label-box sp-label">
+                            <span class="arabic-text" dir="rtl">العمليات والدعم</span>
+                            <span class="english-text">(Support Processes / Behind the scenes)</span>
+                        </div>
+                        <div class="steps-cards-container flex gap-10 p-3.5 flex-1 items-center" id="cards-sp" dir="ltr"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let currentBlueprint = {
+            id: 'bp-' + Date.now(),
+            title: 'رحلة العميل الرئيسي',
+            characters: [],
+            steps: []
+        };
+
+        let scale = 1;
+        let panX = 0;
+        let panY = 0;
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+
+        function getLayerColorStyle(layerName) {
+            if (!layerName) return { bg: '#e0f2fe', border: '#7dd3fc', text: '#0369a1' };
+            if (layerName.includes('Customer Actions') || layerName.includes('أفعال العميل')) {
+                return { bg: '#e0f2fe', border: '#7dd3fc', text: '#0369a1', fullLayer: 'Customer Actions' };
+            }
+            if (layerName.includes('Frontstage') || layerName.includes('الواجهة الأمامية')) {
+                return { bg: '#d1fae5', border: '#6ee7b7', text: '#047857', fullLayer: 'Frontstage' };
+            }
+            if (layerName.includes('Backstage') || layerName.includes('الكواليس')) {
+                return { bg: '#fef3c7', border: '#fde047', text: '#b45309', fullLayer: 'Backstage' };
+            }
+            if (layerName.includes('Support Processes') || layerName.includes('العمليات والدعم')) {
+                return { bg: '#e0e7ff', border: '#a5b4fc', text: '#3730a3', fullLayer: 'Support Processes' };
+            }
+            return { bg: '#e0f2fe', border: '#7dd3fc', text: '#0369a1', fullLayer: 'Customer Actions' };
+        }
+
+        function getContainerIdByLayer(layerName) {
+            if (!layerName) return 'cards-ca';
+            if (layerName.includes('Customer Actions') || layerName.includes('أفعال العميل')) return 'cards-ca';
+            if (layerName.includes('Frontstage') || layerName.includes('الواجهة الأمامية')) return 'cards-fs';
+            if (layerName.includes('Backstage') || layerName.includes('الكواليس')) return 'cards-bs';
+            if (layerName.includes('Support Processes') || layerName.includes('العمليات والدعم')) return 'cards-sp';
+            return 'cards-ca';
+        }
+
+        function renderBlueprint() {
+            const containers = ['cards-ca', 'cards-fs', 'cards-bs', 'cards-sp'];
+            containers.forEach(cid => {
+                const el = document.getElementById(cid);
+                if (el) el.innerHTML = '';
+            });
+
+            const titleDisplay = document.getElementById('journey-title-display');
+            if (titleDisplay) {
+                titleDisplay.textContent = currentBlueprint.title || 'رحلة العميل الرئيسي';
+            }
+
+            (currentBlueprint.steps || []).forEach((step, idx) => {
+                const cid = getContainerIdByLayer(step.layer);
+                const container = document.getElementById(cid);
+                if (!container) return;
+
+                const card = document.createElement('div');
+                card.className = "bg-white border border-[#d2d6db] rounded-2xl shadow-sm flex flex-col min-w-[270px] max-w-[290px] relative z-20 text-right text-xs shrink-0 transition-all hover:shadow-md overflow-hidden group";
+                card.setAttribute('data-step-id', step.id);
+
+                let charHtml = '';
+                if (step.character) {
+                    const charObj = (currentBlueprint.characters || []).find(c => (typeof c === 'string' ? c : c.name) === step.character);
+                    const charLayer = charObj ? (typeof charObj === 'string' ? step.layer : charObj.layer) : step.layer;
+                    const colorStyle = getLayerColorStyle(charLayer);
+
+                    charHtml = `<div class="font-bold px-2.5 py-1 rounded-full text-[11px] flex items-center gap-1.5 w-fit border shadow-2xs" style="background-color: ${colorStyle.bg}; color: ${colorStyle.text}; border-color: ${colorStyle.border};">
+                        <span>👤</span>
+                        <span>${step.character}</span>
+                    </div>`;
+                }
+
+                let durationHtml = '';
+                if (step.duration) {
+                    durationHtml = `<div class="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-600 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-md w-fit">
+                        <span>⏱️</span>
+                        <span>${step.duration} ${step.timeUnit || ''}</span>
+                    </div>`;
+                }
+
+                let relationBadgeHtml = '';
+                if (step.pre_step_id) {
+                    const targetPre = (currentBlueprint.steps || []).find(s => s.id === step.pre_step_id);
+                    if (targetPre) {
+                        const preTitle = targetPre.title || 'خطوة سابقة';
+                        if (step.relation_type === 'parallel') {
+                            relationBadgeHtml = `<div class="bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center gap-1 w-full">
+                                <span>⚡ بالتوازي مع:</span>
+                                <span class="font-bold truncate">${preTitle}</span>
+                            </div>`;
+                        } else {
+                            relationBadgeHtml = `<div class="bg-blue-50 text-blue-700 border border-blue-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center gap-1 w-full">
+                                <span>🔗 يتبع الخطوة:</span>
+                                <span class="font-bold truncate">${preTitle}</span>
+                            </div>`;
+                        }
+                    }
+                }
+
+                let evidenceHtml = '';
+                if (step.evidence) {
+                    const items = step.evidence.split(/[,،\n]+/).map(s => s.trim()).filter(Boolean);
+                    const badges = items.map(item => `<span class="bg-gray-100 border border-gray-300 rounded-full px-2.5 py-0.5 text-[11px] font-medium text-gray-700">${item}</span>`).join(' ');
+                    evidenceHtml = `<div class="flex flex-col gap-1">
+                        <span class="font-bold text-[11px] text-[#0284c7]">الأدلة المادية</span>
+                        <div class="flex flex-wrap gap-1.5">${badges}</div>
+                    </div>`;
+                }
+
+                let painHtml = '';
+                if (step.painPoints) {
+                    painHtml = `<div class="bg-[#fff0f0] text-red-800 border border-red-100 rounded-xl p-2.5 flex flex-col gap-1 mt-1">
+                        <span class="font-bold text-[11px] text-red-600">النقاط الحرجة / المشاكل</span>
+                        <p class="text-xs text-gray-700 leading-relaxed">${step.painPoints}</p>
+                    </div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="bg-[#edf5fd] border-b border-[#d0e3f7] px-3.5 py-2 flex justify-between items-center relative">
+                        <span class="font-bold text-xs text-[#0369a1] truncate pr-2">${step.title || 'اسم الخطوة'}</span>
+                        <span class="text-[10px] font-mono text-gray-400 font-bold">#${idx + 1}</span>
+                    </div>
+                    <div class="p-3.5 flex flex-col gap-2.5">
+                        <div class="flex justify-between items-center gap-2 flex-wrap">
+                            ${charHtml}
+                            ${durationHtml}
+                        </div>
+                        ${relationBadgeHtml}
+                        <div class="flex flex-col gap-1">
+                            <span class="font-bold text-[11px] text-[#0284c7]">وصف الخطوة</span>
+                            <p class="text-xs text-gray-700 leading-relaxed">${step.description || 'وصف المرحلة'}</p>
+                        </div>
+                        ${evidenceHtml}
+                        ${painHtml}
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+
+            containers.forEach(cid => {
+                const el = document.getElementById(cid);
+                if (el && el.children.length === 0) {
+                    el.innerHTML = `<div class="text-gray-400 text-xs font-semibold py-3 px-4 border border-dashed border-gray-300 rounded-lg whitespace-nowrap opacity-60">لا يوجد خطوات في هذه الطبقة</div>`;
+                }
+            });
+
+            setTimeout(() => {
+                renderConnections();
+            }, 60);
+        }
+
+        function renderConnections() {
+            const svgGroup = document.getElementById('svg-connections-group');
+            const container = document.getElementById('blueprint-container');
+            if (!svgGroup || !container) return;
+
+            svgGroup.innerHTML = '';
+            const containerRect = container.getBoundingClientRect();
+
+            const connections = [];
+            const outgoingMap = {};
+            const incomingMap = {};
+
+            (currentBlueprint.steps || []).forEach(step => {
+                if (!step.pre_step_id) return;
+                const preCard = document.querySelector(`[data-step-id="${step.pre_step_id}"]`);
+                const currCard = document.querySelector(`[data-step-id="${step.id}"]`);
+                if (!preCard || !currCard) return;
+
+                const item = { step, preCard, currCard };
+                connections.push(item);
+
+                if (!outgoingMap[step.pre_step_id]) outgoingMap[step.pre_step_id] = [];
+                outgoingMap[step.pre_step_id].push(item);
+
+                if (!incomingMap[step.id]) incomingMap[step.id] = [];
+                incomingMap[step.id].push(item);
+            });
+
+            connections.forEach(item => {
+                const { step, preCard, currCard } = item;
+
+                const outGroup = outgoingMap[step.pre_step_id] || [];
+                const inGroup = incomingMap[step.id] || [];
+
+                const outIdx = outGroup.indexOf(item);
+                const inIdx = inGroup.indexOf(item);
+
+                const outOffset = outGroup.length > 1 ? (outIdx - (outGroup.length - 1) / 2) * 14 : 0;
+                const inOffset = inGroup.length > 1 ? (inIdx - (inGroup.length - 1) / 2) * 14 : 0;
+
+                const r1 = preCard.getBoundingClientRect();
+                const r2 = currCard.getBoundingClientRect();
+
+                const pre = {
+                    left: (r1.left - containerRect.left) / scale,
+                    right: (r1.right - containerRect.left) / scale,
+                    top: (r1.top - containerRect.top) / scale,
+                    bottom: (r1.bottom - containerRect.top) / scale,
+                    centerX: ((r1.left + r1.right) / 2 - containerRect.left) / scale,
+                    centerY: ((r1.top + r1.bottom) / 2 - containerRect.top) / scale
+                };
+
+                const curr = {
+                    left: (r2.left - containerRect.left) / scale,
+                    right: (r2.right - containerRect.left) / scale,
+                    top: (r2.top - containerRect.top) / scale,
+                    bottom: (r2.bottom - containerRect.top) / scale,
+                    centerX: ((r2.left + r2.right) / 2 - containerRect.left) / scale,
+                    centerY: ((r2.top + r2.bottom) / 2 - containerRect.top) / scale
+                };
+
+                const isParallel = step.relation_type === 'parallel';
+                let startX, startY, endX, endY;
+                let pathD = '';
+
+                if (!isParallel) {
+                    const isSameY = Math.abs(pre.centerY - curr.centerY) < 40;
+
+                    if (isSameY) {
+                        if (pre.right <= curr.left + 15) {
+                            startX = pre.right;
+                            startY = pre.centerY + outOffset;
+                            endX = curr.left;
+                            endY = curr.centerY + inOffset;
+                        } else {
+                            startX = pre.left;
+                            startY = pre.centerY + outOffset;
+                            endX = curr.right;
+                            endY = curr.centerY + inOffset;
+                        }
+                        const deltaX = Math.max(25, Math.abs(endX - startX) / 2);
+                        pathD = `M ${startX} ${startY} C ${startX + deltaX} ${startY}, ${endX - deltaX} ${endY}, ${endX} ${endY}`;
+                    } else {
+                        if (curr.left >= pre.right - 10) {
+                            startX = pre.right;
+                            startY = pre.centerY + outOffset;
+                            endX = curr.left;
+                            endY = curr.centerY + inOffset;
+                            const deltaX = Math.max(35, Math.abs(endX - startX) / 2);
+                            pathD = `M ${startX} ${startY} C ${startX + deltaX} ${startY}, ${endX - deltaX} ${endY}, ${endX} ${endY}`;
+                        } else if (pre.left >= curr.right - 10) {
+                            startX = pre.left;
+                            startY = pre.centerY + outOffset;
+                            endX = curr.right;
+                            endY = curr.centerY + inOffset;
+                            const deltaX = Math.max(35, Math.abs(startX - endX) / 2);
+                            pathD = `M ${startX} ${startY} C ${startX - deltaX} ${startY}, ${endX + deltaX} ${endY}, ${endX} ${endY}`;
+                        } else {
+                            if (pre.centerY > curr.centerY) {
+                                startX = pre.centerX + outOffset;
+                                startY = pre.top;
+                                endX = curr.centerX + inOffset;
+                                endY = curr.bottom;
+                            } else {
+                                startX = pre.centerX + outOffset;
+                                startY = pre.bottom;
+                                endX = curr.centerX + inOffset;
+                                endY = curr.top;
+                            }
+                            const deltaY = Math.max(25, Math.abs(endY - startY) / 2);
+                            const dir = endY >= startY ? 1 : -1;
+                            pathD = `M ${startX} ${startY} C ${startX} ${startY + dir * deltaY}, ${endX} ${endY - dir * deltaY}, ${endX} ${endY}`;
+                        }
+                    }
+                } else {
+                    if (pre.centerY < curr.centerY - 20) {
+                        startX = pre.centerX + outOffset;
+                        startY = pre.bottom;
+                        endX = curr.centerX + inOffset;
+                        endY = curr.top;
+                    } else if (pre.centerY > curr.centerY + 20) {
+                        startX = pre.centerX + outOffset;
+                        startY = pre.top;
+                        endX = curr.centerX + inOffset;
+                        endY = curr.bottom;
+                    } else {
+                        startX = pre.centerX + outOffset;
+                        startY = pre.bottom;
+                        endX = curr.centerX + inOffset;
+                        endY = curr.bottom;
+                    }
+
+                    const deltaY = Math.max(25, Math.abs(endY - startY) / 2);
+                    const dir = endY >= startY ? 1 : -1;
+                    pathD = `M ${startX} ${startY} C ${startX} ${startY + dir * deltaY}, ${endX} ${endY - dir * deltaY}, ${endX} ${endY}`;
+                }
+
+                const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                pathEl.setAttribute('d', pathD);
+                pathEl.setAttribute('fill', 'none');
+                pathEl.setAttribute('stroke', isParallel ? '#2563eb' : '#0284c7');
+                pathEl.setAttribute('stroke-width', '2.5');
+
+                if (isParallel) {
+                    pathEl.setAttribute('stroke-dasharray', '6,6');
+                    pathEl.setAttribute('marker-end', 'url(#arrow-dashed)');
+                } else {
+                    pathEl.setAttribute('marker-end', 'url(#arrow-solid)');
+                }
+
+                svgGroup.appendChild(pathEl);
+            });
+        }
+
+        function updateTransform() {
+            const wrapper = document.getElementById('canvas-wrapper');
+            const zoomText = document.getElementById('zoom-level-text');
+            if (wrapper) {
+                wrapper.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+            }
+            if (zoomText) {
+                zoomText.textContent = `${Math.round(scale * 100)}%`;
+            }
+        }
+
+        function fitToScreen() {
+            const viewport = document.getElementById('viewport');
+            const container = document.getElementById('blueprint-container');
+            if (!viewport || !container) return;
+
+            const vpWidth = viewport.clientWidth;
+            const vpHeight = viewport.clientHeight;
+            const cWidth = container.scrollWidth || container.offsetWidth || 1200;
+            const cHeight = container.scrollHeight || container.offsetHeight || 600;
+
+            const scaleX = (vpWidth - 60) / cWidth;
+            const scaleY = (vpHeight - 60) / cHeight;
+            scale = Math.min(scaleX, scaleY, 1.1);
+            if (scale < 0.15) scale = 0.15;
+
+            panX = 0;
+            panY = 0;
+            updateTransform();
+            renderConnections();
+        }
+
+        function zoomInteractive(delta) {
+            scale = Math.min(Math.max(0.15, scale + delta), 3.0);
+            updateTransform();
+            renderConnections();
+        }
+
+        function onWheelZoom(e) {
+            e.preventDefault();
+            const delta = e.deltaY < 0 ? 0.12 : -0.12;
+            zoomInteractive(delta);
+        }
+
+        function goToEditor() {
+            window.location.href = `index.html?id=${currentBlueprint.id}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const viewport = document.getElementById('viewport');
+            if (viewport) {
+                viewport.addEventListener('mousedown', (e) => {
+                    if (e.target.closest('button')) return;
+                    isDragging = true;
+                    startX = e.clientX - panX;
+                    startY = e.clientY - panY;
+                });
+            }
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                panX = e.clientX - startX;
+                panY = e.clientY - startY;
+                updateTransform();
+            });
+
+            window.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            window.addEventListener('resize', () => {
+                fitToScreen();
+            });
+        });
+
+        async function loadBlueprint() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const bpId = urlParams.get('id');
+
+            if (bpId) {
+                try {
+                    const res = await fetch(`/api/blueprints/${bpId}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.blueprint) {
+                            currentBlueprint = data.blueprint;
+                            if (data.characters) currentBlueprint.characters = data.characters;
+                            if (data.steps) currentBlueprint.steps = data.steps;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed to load blueprint from server:", e);
+                }
+            }
+
+            if (!currentBlueprint.steps || currentBlueprint.steps.length === 0) {
+                const localData = localStorage.getItem('current_blueprint_backup');
+                if (localData) {
+                    try {
+                        currentBlueprint = JSON.parse(localData);
+                    } catch(e){}
+                }
+            }
+
+            renderBlueprint();
+            setTimeout(() => {
+                fitToScreen();
+            }, 120);
+        }
+
+        window.onload = loadBlueprint;
+    </script>
+</body>
+</html>
