@@ -1386,13 +1386,38 @@
 
             const containerRect = container.getBoundingClientRect();
 
+            const connections = [];
+            const outgoingMap = {};
+            const incomingMap = {};
+
             (currentBlueprint.steps || []).forEach(step => {
                 if (!step.pre_step_id) return;
-
                 const preCard = document.querySelector(`[data-step-id="${step.pre_step_id}"]`);
                 const currCard = document.querySelector(`[data-step-id="${step.id}"]`);
-
                 if (!preCard || !currCard) return;
+
+                const item = { step, preCard, currCard };
+                connections.push(item);
+
+                if (!outgoingMap[step.pre_step_id]) outgoingMap[step.pre_step_id] = [];
+                outgoingMap[step.pre_step_id].push(item);
+
+                if (!incomingMap[step.id]) incomingMap[step.id] = [];
+                incomingMap[step.id].push(item);
+            });
+
+            connections.forEach(item => {
+                const { step, preCard, currCard } = item;
+
+                const outGroup = outgoingMap[step.pre_step_id] || [];
+                const inGroup = incomingMap[step.id] || [];
+
+                const outIdx = outGroup.indexOf(item);
+                const inIdx = inGroup.indexOf(item);
+
+                // 8px spacing offset between multiple branching or converging arrows
+                const outOffset = outGroup.length > 1 ? (outIdx - (outGroup.length - 1) / 2) * 8 : 0;
+                const inOffset = inGroup.length > 1 ? (inIdx - (inGroup.length - 1) / 2) * 8 : 0;
 
                 const r1 = preCard.getBoundingClientRect();
                 const r2 = currCard.getBoundingClientRect();
@@ -1427,14 +1452,14 @@
                         // Same layer: Straight horizontal line in the gap between cards
                         if (pre.right <= curr.left + 15) {
                             startX = pre.right;
-                            startY = pre.centerY;
+                            startY = pre.centerY + outOffset;
                             endX = curr.left;
-                            endY = curr.centerY;
+                            endY = curr.centerY + inOffset;
                         } else {
                             startX = pre.left;
-                            startY = pre.centerY;
+                            startY = pre.centerY + outOffset;
                             endX = curr.right;
-                            endY = curr.centerY;
+                            endY = curr.centerY + inOffset;
                         }
                         pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
                     } else {
@@ -1442,32 +1467,32 @@
                         if (curr.left >= pre.right - 10) {
                             // Curr is to the right of Pre -> exit pre.right, enter curr.left in open gap
                             startX = pre.right;
-                            startY = pre.centerY;
+                            startY = pre.centerY + outOffset;
                             endX = curr.left;
-                            endY = curr.centerY;
+                            endY = curr.centerY + inOffset;
                             const deltaX = Math.max(35, Math.abs(endX - startX) / 2);
                             pathD = `M ${startX} ${startY} C ${startX + deltaX} ${startY}, ${endX - deltaX} ${endY}, ${endX} ${endY}`;
                         } else if (pre.left >= curr.right - 10) {
                             // Pre is to the right of Curr -> exit pre.left, enter curr.right
                             startX = pre.left;
-                            startY = pre.centerY;
+                            startY = pre.centerY + outOffset;
                             endX = curr.right;
-                            endY = curr.centerY;
+                            endY = curr.centerY + inOffset;
                             const deltaX = Math.max(35, Math.abs(startX - endX) / 2);
                             pathD = `M ${startX} ${startY} C ${startX - deltaX} ${startY}, ${endX + deltaX} ${endY}, ${endX} ${endY}`;
                         } else {
                             // Horizontally overlapping cards across layers -> connect via top/bottom to NEVER cover cards!
                             if (pre.centerY > curr.centerY) {
                                 // Pre is below Curr -> Exit pre.top, Enter curr.bottom
-                                startX = pre.centerX;
+                                startX = pre.centerX + outOffset;
                                 startY = pre.top;
-                                endX = curr.centerX;
+                                endX = curr.centerX + inOffset;
                                 endY = curr.bottom;
                             } else {
                                 // Pre is above Curr -> Exit pre.bottom, Enter curr.top
-                                startX = pre.centerX;
+                                startX = pre.centerX + outOffset;
                                 startY = pre.bottom;
-                                endX = curr.centerX;
+                                endX = curr.centerX + inOffset;
                                 endY = curr.top;
                             }
                             const deltaY = Math.max(25, Math.abs(endY - startY) / 2);
@@ -1477,22 +1502,19 @@
                 } else {
                     // Parallel: Dashed line arrow
                     if (pre.centerY < curr.centerY - 20) {
-                        // Pre-step is ABOVE step -> start from BOTTOM of pre-step, end at TOP of step
-                        startX = pre.centerX;
+                        startX = pre.centerX + outOffset;
                         startY = pre.bottom;
-                        endX = curr.centerX;
+                        endX = curr.centerX + inOffset;
                         endY = curr.top;
                     } else if (pre.centerY > curr.centerY + 20) {
-                        // Pre-step is BELOW step -> start from TOP of pre-step, end at BOTTOM of step
-                        startX = pre.centerX;
+                        startX = pre.centerX + outOffset;
                         startY = pre.top;
-                        endX = curr.centerX;
+                        endX = curr.centerX + inOffset;
                         endY = curr.bottom;
                     } else {
-                        // Pre-step is in SAME layer -> start from bottom to bottom
-                        startX = pre.centerX;
+                        startX = pre.centerX + outOffset;
                         startY = pre.bottom;
-                        endX = curr.centerX;
+                        endX = curr.centerX + inOffset;
                         endY = curr.bottom;
                     }
 
