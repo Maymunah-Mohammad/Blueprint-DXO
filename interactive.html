@@ -183,8 +183,8 @@
             </div>
         </header>
 
-        <!-- Main Viewport (Zero Scrollbars, Pan & Zoom) -->
-        <main id="viewport" class="viewport-container" onwheel="onWheelZoom(event)">
+        <!-- Main Viewport (Zero Scrollbars, Pan & Zoom via buttons) -->
+        <main id="viewport" class="viewport-container">
             <div id="canvas-wrapper" class="canvas-transform-wrapper">
                 <div class="blueprint-container relative" id="blueprint-container">
                     <!-- Dynamic SVG Connections Overlay for Pre-step Arrows -->
@@ -611,12 +611,6 @@
             scale = Math.min(Math.max(0.15, scale + delta), 3.0);
             updateTransform();
             renderConnections();
-        }
-
-        function onWheelZoom(e) {
-            e.preventDefault();
-            const delta = e.deltaY < 0 ? 0.12 : -0.12;
-            zoomInteractive(delta);
         }
 
         function goToEditor() {
