@@ -279,6 +279,8 @@
             align-self: stretch;
             padding: 16px 8px;
             flex-shrink: 0;
+            position: relative;
+            z-index: 30;
         }
         .line-container {
             display: flex;
@@ -493,7 +495,7 @@
 
                     <div class="blueprint-container relative" id="blueprint-container">
                         <!-- Dynamic SVG Connections Overlay for Pre-step Arrows -->
-                        <svg id="blueprint-connections-svg" class="absolute inset-0 w-full h-full pointer-events-none z-30" style="overflow: visible;">
+                        <svg id="blueprint-connections-svg" class="absolute inset-0 w-full h-full pointer-events-none z-10" style="overflow: visible;">
                             <defs>
                                 <marker id="arrow-solid" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
                                     <path d="M 0 1 L 10 5 L 0 9 z" fill="#1e293b" />
@@ -1262,7 +1264,7 @@
                 if (placeholder) placeholder.remove();
 
                 const card = document.createElement('div');
-                card.className = "bg-white border border-[#d2d6db] rounded-2xl shadow-sm flex flex-col min-w-[270px] max-w-[290px] relative text-right text-xs shrink-0 transition-all hover:shadow-md overflow-hidden group";
+                card.className = "bg-white border border-[#d2d6db] rounded-2xl shadow-sm flex flex-col min-w-[270px] max-w-[290px] relative z-20 text-right text-xs shrink-0 transition-all hover:shadow-md overflow-hidden group";
                 card.setAttribute('data-step-id', step.id);
 
                 let charHtml = '';
