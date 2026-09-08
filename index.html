@@ -1415,9 +1415,9 @@
                 const outIdx = outGroup.indexOf(item);
                 const inIdx = inGroup.indexOf(item);
 
-                // 8px spacing offset between multiple branching or converging arrows
-                const outOffset = outGroup.length > 1 ? (outIdx - (outGroup.length - 1) / 2) * 8 : 0;
-                const inOffset = inGroup.length > 1 ? (inIdx - (inGroup.length - 1) / 2) * 8 : 0;
+                // 14px spacing offset between multiple branching or converging arrows (guarantees >= 6px clear gap between arrowhead edges)
+                const outOffset = outGroup.length > 1 ? (outIdx - (outGroup.length - 1) / 2) * 14 : 0;
+                const inOffset = inGroup.length > 1 ? (inIdx - (inGroup.length - 1) / 2) * 14 : 0;
 
                 const r1 = preCard.getBoundingClientRect();
                 const r2 = currCard.getBoundingClientRect();
