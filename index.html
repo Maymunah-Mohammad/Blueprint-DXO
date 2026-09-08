@@ -1449,7 +1449,7 @@
                     const isSameY = Math.abs(pre.centerY - curr.centerY) < 40;
 
                     if (isSameY) {
-                        // Same layer: Straight horizontal line in the gap between cards
+                        // Same layer: 100% Straight horizontal line
                         if (pre.right <= curr.left + 15) {
                             startX = pre.right;
                             startY = pre.centerY + outOffset;
@@ -1465,23 +1465,21 @@
                     } else {
                         // Different layers (cross-path steps)
                         if (curr.left >= pre.right - 10) {
-                            // Curr is to the right of Pre -> exit pre.right, enter curr.left in open gap
+                            // Curr is to the right of Pre -> 100% Straight line
                             startX = pre.right;
                             startY = pre.centerY + outOffset;
                             endX = curr.left;
                             endY = curr.centerY + inOffset;
-                            const deltaX = Math.max(35, Math.abs(endX - startX) / 2);
-                            pathD = `M ${startX} ${startY} C ${startX + deltaX} ${startY}, ${endX - deltaX} ${endY}, ${endX} ${endY}`;
+                            pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
                         } else if (pre.left >= curr.right - 10) {
-                            // Pre is to the right of Curr -> exit pre.left, enter curr.right
+                            // Pre is to the right of Curr -> 100% Straight line
                             startX = pre.left;
                             startY = pre.centerY + outOffset;
                             endX = curr.right;
                             endY = curr.centerY + inOffset;
-                            const deltaX = Math.max(35, Math.abs(startX - endX) / 2);
-                            pathD = `M ${startX} ${startY} C ${startX - deltaX} ${startY}, ${endX + deltaX} ${endY}, ${endX} ${endY}`;
+                            pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
                         } else {
-                            // Horizontally overlapping cards across layers -> connect via top/bottom to NEVER cover cards!
+                            // Steps are horizontally overlapping / on top of each other across layers -> Smooth curve
                             if (pre.centerY > curr.centerY) {
                                 // Pre is below Curr -> Exit pre.top, Enter curr.bottom
                                 startX = pre.centerX + outOffset;
@@ -1495,8 +1493,13 @@
                                 endX = curr.centerX + inOffset;
                                 endY = curr.top;
                             }
-                            const deltaY = Math.max(25, Math.abs(endY - startY) / 2);
-                            pathD = `M ${startX} ${startY} C ${startX} ${startY + (endY >= startY ? deltaY : -deltaY)}, ${endX} ${endY + (endY >= startY ? -deltaY : deltaY)}, ${endX} ${endY}`;
+                            const isSameX = Math.abs(startX - endX) < 10;
+                            if (isSameX) {
+                                pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
+                            } else {
+                                const deltaY = Math.max(25, Math.abs(endY - startY) / 2);
+                                pathD = `M ${startX} ${startY} C ${startX} ${startY + (endY >= startY ? deltaY : -deltaY)}, ${endX} ${endY + (endY >= startY ? -deltaY : deltaY)}, ${endX} ${endY}`;
+                            }
                         }
                     }
                 } else {
@@ -1518,8 +1521,13 @@
                         endY = curr.bottom;
                     }
 
-                    const deltaY = Math.max(20, Math.abs(endY - startY) / 2);
-                    pathD = `M ${startX} ${startY} C ${startX} ${startY + (endY >= startY ? deltaY : -deltaY)}, ${endX} ${endY + (endY >= startY ? -deltaY : deltaY)}, ${endX} ${endY}`;
+                    const isSameX = Math.abs(startX - endX) < 10;
+                    if (isSameX) {
+                        pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
+                    } else {
+                        const deltaY = Math.max(20, Math.abs(endY - startY) / 2);
+                        pathD = `M ${startX} ${startY} C ${startX} ${startY + (endY >= startY ? deltaY : -deltaY)}, ${endX} ${endY + (endY >= startY ? -deltaY : deltaY)}, ${endX} ${endY}`;
+                    }
                 }
 
                 const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
