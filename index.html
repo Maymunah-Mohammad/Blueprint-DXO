@@ -1449,7 +1449,7 @@
                     const isSameY = Math.abs(pre.centerY - curr.centerY) < 40;
 
                     if (isSameY) {
-                        // Same layer: 100% Straight horizontal line
+                        // Same layer: Smooth horizontal wavy curve
                         if (pre.right <= curr.left + 15) {
                             startX = pre.right;
                             startY = pre.centerY + outOffset;
@@ -1461,55 +1461,44 @@
                             endX = curr.right;
                             endY = curr.centerY + inOffset;
                         }
-                        pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
+                        const deltaX = Math.max(25, Math.abs(endX - startX) / 2);
+                        pathD = `M ${startX} ${startY} C ${startX + deltaX} ${startY}, ${endX - deltaX} ${endY}, ${endX} ${endY}`;
                     } else {
-                        // Different layers (cross-path steps)
+                        // Different layers (cross-path steps): Smooth wavy S-curves
                         if (curr.left >= pre.right - 10) {
-                            // Curr is to the right of Pre -> exit pre.right, enter curr.left using clean right-angled elbow (HV)
                             startX = pre.right;
                             startY = pre.centerY + outOffset;
                             endX = curr.left;
                             endY = curr.centerY + inOffset;
-
-                            const midX = startX + (endX - startX) / 2;
-                            pathD = `M ${startX} ${startY} L ${midX} ${startY} L ${midX} ${endY} L ${endX} ${endY}`;
+                            const deltaX = Math.max(35, Math.abs(endX - startX) / 2);
+                            pathD = `M ${startX} ${startY} C ${startX + deltaX} ${startY}, ${endX - deltaX} ${endY}, ${endX} ${endY}`;
                         } else if (pre.left >= curr.right - 10) {
-                            // Pre is to the right of Curr -> exit pre.left, enter curr.right using clean right-angled elbow (HV)
                             startX = pre.left;
                             startY = pre.centerY + outOffset;
                             endX = curr.right;
                             endY = curr.centerY + inOffset;
-
-                            const midX = startX - (startX - endX) / 2;
-                            pathD = `M ${startX} ${startY} L ${midX} ${startY} L ${midX} ${endY} L ${endX} ${endY}`;
+                            const deltaX = Math.max(35, Math.abs(startX - endX) / 2);
+                            pathD = `M ${startX} ${startY} C ${startX - deltaX} ${startY}, ${endX + deltaX} ${endY}, ${endX} ${endY}`;
                         } else {
-                            // Steps are horizontally overlapping / on top of each other across layers
+                            // Horizontally overlapping / steps on top of each other: Smooth wavy vertical S-curves
                             if (pre.centerY > curr.centerY) {
-                                // Pre is below Curr -> Exit pre.top, Enter curr.bottom
                                 startX = pre.centerX + outOffset;
                                 startY = pre.top;
                                 endX = curr.centerX + inOffset;
                                 endY = curr.bottom;
                             } else {
-                                // Pre is above Curr -> Exit pre.bottom, Enter curr.top
                                 startX = pre.centerX + outOffset;
                                 startY = pre.bottom;
                                 endX = curr.centerX + inOffset;
                                 endY = curr.top;
                             }
-                            const isSameX = Math.abs(startX - endX) < 3;
-                            if (isSameX) {
-                                // Perfectly vertical straight line 100%
-                                pathD = `M ${startX} ${startY} L ${startX} ${endY}`;
-                            } else {
-                                // Right-angled step (VH) instead of tilted diagonal line!
-                                const midY = startY + (endY - startY) / 2;
-                                pathD = `M ${startX} ${startY} L ${startX} ${midY} L ${endX} ${midY} L ${endX} ${endY}`;
-                            }
+                            const deltaY = Math.max(25, Math.abs(endY - startY) / 2);
+                            const dir = endY >= startY ? 1 : -1;
+                            pathD = `M ${startX} ${startY} C ${startX} ${startY + dir * deltaY}, ${endX} ${endY - dir * deltaY}, ${endX} ${endY}`;
                         }
                     }
                 } else {
-                    // Parallel: Dashed line arrow
+                    // Parallel: Dashed line smooth wavy curve
                     if (pre.centerY < curr.centerY - 20) {
                         startX = pre.centerX + outOffset;
                         startY = pre.bottom;
@@ -1527,13 +1516,9 @@
                         endY = curr.bottom;
                     }
 
-                    const isSameX = Math.abs(startX - endX) < 3;
-                    if (isSameX) {
-                        pathD = `M ${startX} ${startY} L ${startX} ${endY}`;
-                    } else {
-                        const midY = startY + (endY - startY) / 2;
-                        pathD = `M ${startX} ${startY} L ${startX} ${midY} L ${endX} ${midY} L ${endX} ${endY}`;
-                    }
+                    const deltaY = Math.max(25, Math.abs(endY - startY) / 2);
+                    const dir = endY >= startY ? 1 : -1;
+                    pathD = `M ${startX} ${startY} C ${startX} ${startY + dir * deltaY}, ${endX} ${endY - dir * deltaY}, ${endX} ${endY}`;
                 }
 
                 const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
