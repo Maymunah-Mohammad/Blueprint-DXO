@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المخطط التفاعلي - DXO Service Blueprint</title>
+    <title>عرض المخطط التفاعلي - DXO Service Blueprint</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
         * {
             font-family: 'Tajawal', sans-serif;
-            user-select: none;
+            box-sizing: border-box;
         }
 
         body, html {
@@ -19,11 +19,11 @@
             width: 100vw;
             height: 100vh;
             overflow: hidden;
-            background-color: #0f172a;
-            color: #f8fafc;
+            background-color: #f8fafc;
+            color: #0f172a;
         }
 
-        /* Blueprint Blocks & Rows */
+        /* Blueprint Blocks & Rows - Exact Match with Editor (index.html) */
         .section-box {
             display: flex;
             align-items: stretch;
@@ -98,46 +98,59 @@
         .arabic-text { font-size: 13px; font-weight: 800; }
         .english-text { font-size: 10px; font-weight: 700; opacity: 0.8; }
 
+        /* Blueprint Frame Container */
+        .blueprint-frame {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
+            width: max-content;
+            min-width: 1000px;
+            position: relative;
+        }
+
         .blueprint-container {
             display: flex;
             flex-direction: column;
             gap: 12px;
-            padding: 24px;
-            background-color: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);
-            width: max-content;
-            min-width: 1000px;
+            position: relative;
+            min-width: max-content;
         }
 
-        .viewport-container {
+        /* Scrollable main view */
+        .interactive-workspace {
             width: 100vw;
             height: calc(100vh - 64px);
-            overflow: hidden;
-            position: relative;
+            overflow: auto;
+            padding: 24px;
             display: flex;
-            align-items: center;
             justify-content: center;
-            cursor: grab;
-            background: radial-gradient(circle, #1e293b 1px, transparent 1px);
-            background-size: 24px 24px;
+            align-items: flex-start;
+            background-color: #f1f5f9;
         }
 
-        .viewport-container:active {
-            cursor: grabbing;
-        }
-
-        .canvas-transform-wrapper {
-            transform-origin: center center;
-            transition: transform 0.05s linear;
-            position: relative;
+        @media print {
+            header, .no-print {
+                display: none !important;
+            }
+            body, html, .interactive-workspace {
+                overflow: visible !important;
+                height: auto !important;
+                background: white !important;
+                padding: 0 !important;
+            }
+            .blueprint-frame {
+                box-shadow: none !important;
+                border: none !important;
+            }
         }
     </style>
 </head>
 <body>
     <div class="flex flex-col h-screen w-screen overflow-hidden">
-        <!-- Header Bar: Title + Zoom Toolbar -->
-        <header class="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between z-50 shrink-0 shadow-lg" dir="rtl">
+        <!-- Top Bar Header -->
+        <header class="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between z-50 shrink-0 shadow-lg no-print" dir="rtl">
             <div class="flex items-center gap-4">
                 <div class="bg-indigo-600/30 border border-indigo-500/40 p-2 rounded-xl text-indigo-400 flex items-center justify-center">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -149,45 +162,31 @@
                 <div class="flex flex-col">
                     <div class="flex items-center gap-2">
                         <span class="text-xs font-bold text-slate-400">اسم الرحلة:</span>
-                        <h1 id="journey-title-display" class="text-base font-extrabold text-white truncate max-w-md">رحلة العميل الرئيسي</h1>
+                        <h1 id="journey-title-display" class="text-base font-extrabold text-white truncate max-w-md">جاري التحميل...</h1>
                     </div>
-                    <span class="text-[11px] text-slate-400 font-medium">عرض المخطط التفاعلي كامل الشاشة بدقة عالية - اسحب للتحرك واستخدم عجلة الماوس للتكبير</span>
+                    <span class="text-[11px] text-slate-400 font-medium">عرض المخطط التفاعلي المستقل في صفحة كاملة</span>
                 </div>
             </div>
 
-            <!-- Toolbar Controls -->
-            <div class="flex items-center gap-2 bg-slate-800/90 p-1.5 rounded-2xl border border-slate-700/80 shadow-inner">
-                <button type="button" onclick="zoomInteractive(-0.15)" class="p-2 text-slate-200 hover:text-white hover:bg-slate-700 rounded-xl transition-colors cursor-pointer text-xs font-bold flex items-center gap-1" title="تصغير (Zoom Out)">
-                    <span>🔍−</span>
+            <!-- Action Controls -->
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="window.print()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl transition-all cursor-pointer text-xs font-bold flex items-center gap-2 shadow-sm">
+                    <span>🖨️</span>
+                    <span>طباعة المخطط</span>
                 </button>
 
-                <span id="zoom-level-text" class="text-xs font-mono font-extrabold text-indigo-300 min-w-[55px] text-center px-1">100%</span>
-
-                <button type="button" onclick="zoomInteractive(+0.15)" class="p-2 text-slate-200 hover:text-white hover:bg-slate-700 rounded-xl transition-colors cursor-pointer text-xs font-bold flex items-center gap-1" title="تكبير (Zoom In)">
-                    <span>🔍+</span>
-                </button>
-
-                <div class="h-4 w-px bg-slate-700 mx-1"></div>
-
-                <button type="button" onclick="fitToScreen()" class="px-3 py-1.5 text-xs font-bold text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/80 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 border border-indigo-500/40" title="احتواء المخطط كاملاً في الشاشة بدون سكرول">
-                    <span>🎯</span>
-                    <span>احتواء الشاشة</span>
-                </button>
-
-                <div class="h-4 w-px bg-slate-700 mx-1"></div>
-
-                <button type="button" onclick="goToEditor()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all cursor-pointer text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95">
+                <button type="button" onclick="goToEditor()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all cursor-pointer text-xs font-bold flex items-center gap-2 shadow-md active:scale-95">
                     <span>✏️</span>
-                    <span>تعديل المخطط</span>
+                    <span>العودة للتعديل</span>
                 </button>
             </div>
         </header>
 
-        <!-- Main Viewport (Zero Scrollbars, Pan & Zoom via buttons) -->
-        <main id="viewport" class="viewport-container">
-            <div id="canvas-wrapper" class="canvas-transform-wrapper">
+        <!-- Main Workspace displaying Blueprint Frame alone -->
+        <main class="interactive-workspace">
+            <div class="blueprint-frame" id="blueprint-frame">
                 <div class="blueprint-container relative" id="blueprint-container">
-                    <!-- Dynamic SVG Connections Overlay for Pre-step Arrows -->
+                    <!-- SVG Connections Overlay -->
                     <svg id="blueprint-connections-svg" class="absolute inset-0 w-full h-full pointer-events-none z-10" style="overflow: visible;">
                         <defs>
                             <marker id="arrow-solid" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
@@ -258,7 +257,7 @@
                     <div class="section-box sp-row">
                         <div class="label-box sp-label">
                             <span class="arabic-text" dir="rtl">العمليات والدعم</span>
-                            <span class="english-text">(Support Processes / Behind the scenes)</span>
+                            <span class="english-text">(Support Processes)</span>
                         </div>
                         <div class="steps-cards-container flex gap-10 p-3.5 flex-1 items-center" id="cards-sp" dir="ltr"></div>
                     </div>
@@ -267,37 +266,16 @@
         </main>
     </div>
 
+    <!-- JavaScript Data Loading & Connection Rendering (Exact Mirror of Editor) -->
     <script>
         let currentBlueprint = {
-            id: 'bp-' + Date.now(),
-            title: 'رحلة العميل الرئيسي',
-            characters: [],
-            steps: []
+            id: '',
+            title: '',
+            steps: [],
+            characters: []
         };
 
-        let scale = 1;
-        let panX = 0;
-        let panY = 0;
-        let isDragging = false;
-        let startX = 0;
-        let startY = 0;
-
-        function getLayerColorStyle(layerName) {
-            if (!layerName) return { bg: '#e0f2fe', border: '#7dd3fc', text: '#0369a1' };
-            if (layerName.includes('Customer Actions') || layerName.includes('أفعال العميل')) {
-                return { bg: '#e0f2fe', border: '#7dd3fc', text: '#0369a1', fullLayer: 'Customer Actions' };
-            }
-            if (layerName.includes('Frontstage') || layerName.includes('الواجهة الأمامية')) {
-                return { bg: '#d1fae5', border: '#6ee7b7', text: '#047857', fullLayer: 'Frontstage' };
-            }
-            if (layerName.includes('Backstage') || layerName.includes('الكواليس')) {
-                return { bg: '#fef3c7', border: '#fde047', text: '#b45309', fullLayer: 'Backstage' };
-            }
-            if (layerName.includes('Support Processes') || layerName.includes('العمليات والدعم')) {
-                return { bg: '#e0e7ff', border: '#a5b4fc', text: '#3730a3', fullLayer: 'Support Processes' };
-            }
-            return { bg: '#e0f2fe', border: '#7dd3fc', text: '#0369a1', fullLayer: 'Customer Actions' };
-        }
+        const containers = ['cards-ca', 'cards-fs', 'cards-bs', 'cards-sp'];
 
         function getContainerIdByLayer(layerName) {
             if (!layerName) return 'cards-ca';
@@ -308,17 +286,75 @@
             return 'cards-ca';
         }
 
-        function renderBlueprint() {
-            const containers = ['cards-ca', 'cards-fs', 'cards-bs', 'cards-sp'];
+        function getLayerColorStyle(layerName) {
+            if (!layerName) return { bg: '#eaf3fe', text: '#0369a1', border: '#9fccfd' };
+            if (layerName.includes('Customer Actions') || layerName.includes('أفعال العميل')) {
+                return { bg: '#eaf3fe', text: '#0369a1', border: '#9fccfd' };
+            }
+            if (layerName.includes('Frontstage') || layerName.includes('الواجهة الأمامية')) {
+                return { bg: '#eaf1ec', text: '#047857', border: '#b0d1c6' };
+            }
+            if (layerName.includes('Backstage') || layerName.includes('الكواليس')) {
+                return { bg: '#fef4e6', text: '#b45309', border: '#fbcc8e' };
+            }
+            if (layerName.includes('Support Processes') || layerName.includes('العمليات والدعم')) {
+                return { bg: '#f0f4f8', text: '#3730a3', border: '#9fc3e5' };
+            }
+            return { bg: '#eaf3fe', text: '#0369a1', border: '#9fccfd' };
+        }
+
+        function goToEditor() {
+            if (window.opener && !window.opener.closed) {
+                window.close();
+            } else {
+                const urlParams = new URLSearchParams(window.location.search);
+                const bpId = urlParams.get('id') || currentBlueprint.id;
+                window.location.href = bpId ? `/?id=${encodeURIComponent(bpId)}` : '/';
+            }
+        }
+
+        async function initInteractivePage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const bpId = urlParams.get('id');
+
+            if (bpId) {
+                try {
+                    const res = await fetch(`/api/blueprints/${encodeURIComponent(bpId)}?t=${Date.now()}`);
+                    if (res.ok) {
+                        currentBlueprint = await res.json();
+                    } else {
+                        throw new Error("Failed to load blueprint from server");
+                    }
+                } catch(e) {
+                    console.warn("Could not fetch blueprint from server, trying local cache...", e);
+                    const localBackup = localStorage.getItem('current_blueprint_backup');
+                    if (localBackup) {
+                        try { currentBlueprint = JSON.parse(localBackup); } catch(err){}
+                    }
+                }
+            } else {
+                const localBackup = localStorage.getItem('current_blueprint_backup');
+                if (localBackup) {
+                    try { currentBlueprint = JSON.parse(localBackup); } catch(e){}
+                }
+            }
+
+            // Update Title Header
+            const titleEl = document.getElementById('journey-title-display');
+            if (titleEl) {
+                titleEl.textContent = currentBlueprint.title || 'رحلة بدون عنوان';
+            }
+            document.title = `${currentBlueprint.title || 'المخطط التفاعلي'} - DXO Service Blueprint`;
+
+            // Render Blueprint Cards & Connections
+            renderBlueprintCards();
+        }
+
+        function renderBlueprintCards() {
             containers.forEach(cid => {
                 const el = document.getElementById(cid);
                 if (el) el.innerHTML = '';
             });
-
-            const titleDisplay = document.getElementById('journey-title-display');
-            if (titleDisplay) {
-                titleDisplay.textContent = currentBlueprint.title || 'رحلة العميل الرئيسي';
-            }
 
             (currentBlueprint.steps || []).forEach((step, idx) => {
                 const cid = getContainerIdByLayer(step.layer);
@@ -388,19 +424,22 @@
 
                 card.innerHTML = `
                     <div class="bg-[#edf5fd] border-b border-[#d0e3f7] px-3.5 py-2 flex justify-between items-center relative">
-                        <span class="font-bold text-xs text-[#0369a1] truncate pr-2">${step.title || 'اسم الخطوة'}</span>
-                        <span class="text-[10px] font-mono text-gray-400 font-bold">#${idx + 1}</span>
+                        <span class="font-bold text-xs text-[#0369a1] truncate">${step.title || 'اسم الخطوة'}</span>
                     </div>
+
                     <div class="p-3.5 flex flex-col gap-2.5">
                         <div class="flex justify-between items-center gap-2 flex-wrap">
                             ${charHtml}
                             ${durationHtml}
                         </div>
+
                         ${relationBadgeHtml}
+
                         <div class="flex flex-col gap-1">
                             <span class="font-bold text-[11px] text-[#0284c7]">وصف الخطوة</span>
-                            <p class="text-xs text-gray-700 leading-relaxed">${step.description || 'وصف المرحلة'}</p>
+                            <p class="text-xs text-gray-700 leading-relaxed">${step.description || 'اسم الرحلة'}</p>
                         </div>
+
                         ${evidenceHtml}
                         ${painHtml}
                     </div>
@@ -412,16 +451,18 @@
             containers.forEach(cid => {
                 const el = document.getElementById(cid);
                 if (el && el.children.length === 0) {
-                    el.innerHTML = `<div class="text-gray-400 text-xs font-semibold py-3 px-4 border border-dashed border-gray-300 rounded-lg whitespace-nowrap opacity-60">لا يوجد خطوات في هذه الطبقة</div>`;
+                    el.innerHTML = `<div class="empty-placeholder text-gray-300 text-xs font-semibold py-3 px-4 border border-dashed border-gray-200 rounded-lg whitespace-nowrap opacity-60">لا يوجد خطوات في هذه الطبقة بعد</div>`;
                 }
             });
 
-            setTimeout(() => {
-                renderConnections();
-            }, 60);
+            // Draw SVG connection arrows after DOM layout settles
+            requestAnimationFrame(() => {
+                setTimeout(renderCanvasConnections, 60);
+            });
         }
 
-        function renderConnections() {
+        // Render Canvas Connections (1-to-1 mirror of index.html editor)
+        function renderCanvasConnections() {
             const svgGroup = document.getElementById('svg-connections-group');
             const container = document.getElementById('blueprint-container');
             if (!svgGroup || !container) return;
@@ -465,24 +506,25 @@
                 const r2 = currCard.getBoundingClientRect();
 
                 const pre = {
-                    left: (r1.left - containerRect.left) / scale,
-                    right: (r1.right - containerRect.left) / scale,
-                    top: (r1.top - containerRect.top) / scale,
-                    bottom: (r1.bottom - containerRect.top) / scale,
-                    centerX: ((r1.left + r1.right) / 2 - containerRect.left) / scale,
-                    centerY: ((r1.top + r1.bottom) / 2 - containerRect.top) / scale
+                    left: r1.left - containerRect.left,
+                    right: r1.right - containerRect.left,
+                    top: r1.top - containerRect.top,
+                    bottom: r1.bottom - containerRect.top,
+                    centerX: (r1.left + r1.right) / 2 - containerRect.left,
+                    centerY: (r1.top + r1.bottom) / 2 - containerRect.top
                 };
 
                 const curr = {
-                    left: (r2.left - containerRect.left) / scale,
-                    right: (r2.right - containerRect.left) / scale,
-                    top: (r2.top - containerRect.top) / scale,
-                    bottom: (r2.bottom - containerRect.top) / scale,
-                    centerX: ((r2.left + r2.right) / 2 - containerRect.left) / scale,
-                    centerY: ((r2.top + r2.bottom) / 2 - containerRect.top) / scale
+                    left: r2.left - containerRect.left,
+                    right: r2.right - containerRect.left,
+                    top: r2.top - containerRect.top,
+                    bottom: r2.bottom - containerRect.top,
+                    centerX: (r2.left + r2.right) / 2 - containerRect.left,
+                    centerY: (r2.top + r2.bottom) / 2 - containerRect.top
                 };
 
                 const isParallel = step.relation_type === 'parallel';
+
                 let startX, startY, endX, endY;
                 let pathD = '';
 
@@ -575,111 +617,8 @@
             });
         }
 
-        function updateTransform() {
-            const wrapper = document.getElementById('canvas-wrapper');
-            const zoomText = document.getElementById('zoom-level-text');
-            if (wrapper) {
-                wrapper.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
-            }
-            if (zoomText) {
-                zoomText.textContent = `${Math.round(scale * 100)}%`;
-            }
-        }
-
-        function fitToScreen() {
-            const viewport = document.getElementById('viewport');
-            const container = document.getElementById('blueprint-container');
-            if (!viewport || !container) return;
-
-            const vpWidth = viewport.clientWidth;
-            const vpHeight = viewport.clientHeight;
-            const cWidth = container.scrollWidth || container.offsetWidth || 1200;
-            const cHeight = container.scrollHeight || container.offsetHeight || 600;
-
-            const scaleX = (vpWidth - 60) / cWidth;
-            const scaleY = (vpHeight - 60) / cHeight;
-            scale = Math.min(scaleX, scaleY, 1.1);
-            if (scale < 0.15) scale = 0.15;
-
-            panX = 0;
-            panY = 0;
-            updateTransform();
-            renderConnections();
-        }
-
-        function zoomInteractive(delta) {
-            scale = Math.min(Math.max(0.15, scale + delta), 3.0);
-            updateTransform();
-            renderConnections();
-        }
-
-        function goToEditor() {
-            window.location.href = `index.html?id=${currentBlueprint.id}`;
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const viewport = document.getElementById('viewport');
-            if (viewport) {
-                viewport.addEventListener('mousedown', (e) => {
-                    if (e.target.closest('button')) return;
-                    isDragging = true;
-                    startX = e.clientX - panX;
-                    startY = e.clientY - panY;
-                });
-            }
-
-            window.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
-                panX = e.clientX - startX;
-                panY = e.clientY - startY;
-                updateTransform();
-            });
-
-            window.addEventListener('mouseup', () => {
-                isDragging = false;
-            });
-
-            window.addEventListener('resize', () => {
-                fitToScreen();
-            });
-        });
-
-        async function loadBlueprint() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const bpId = urlParams.get('id');
-
-            if (bpId) {
-                try {
-                    const res = await fetch(`/api/blueprints/${bpId}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data && data.blueprint) {
-                            currentBlueprint = data.blueprint;
-                            if (data.characters) currentBlueprint.characters = data.characters;
-                            if (data.steps) currentBlueprint.steps = data.steps;
-                        }
-                    }
-                } catch (e) {
-                    console.error("Failed to load blueprint from server:", e);
-                }
-            }
-
-            if (!currentBlueprint.steps || currentBlueprint.steps.length === 0) {
-                const localData = localStorage.getItem('current_blueprint_backup');
-                if (localData) {
-                    try {
-                        currentBlueprint = JSON.parse(localData);
-                    } catch(e){}
-                }
-            }
-
-            renderBlueprint();
-            setTimeout(() => {
-                fitToScreen();
-            }, 120);
-        }
-
-        window.onload = loadBlueprint;
+        window.addEventListener('resize', renderCanvasConnections);
+        document.addEventListener('DOMContentLoaded', initInteractivePage);
     </script>
 </body>
 </html>
