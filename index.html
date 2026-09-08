@@ -495,10 +495,10 @@
                         <!-- Dynamic SVG Connections Overlay for Pre-step Arrows -->
                         <svg id="blueprint-connections-svg" class="absolute inset-0 w-full h-full pointer-events-none z-30" style="overflow: visible;">
                             <defs>
-                                <marker id="arrow-solid" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                                <marker id="arrow-solid" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
                                     <path d="M 0 1 L 10 5 L 0 9 z" fill="#1e293b" />
                                 </marker>
-                                <marker id="arrow-dashed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                                <marker id="arrow-dashed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
                                     <path d="M 0 1 L 10 5 L 0 9 z" fill="#4f46e5" />
                                 </marker>
                             </defs>
@@ -1389,14 +1389,44 @@
                 let pathD = '';
 
                 if (!isParallel) {
-                    // Sequential: Solid line arrow from RIGHT side of pre-step going to LEFT side of step
-                    startX = pre.right;
-                    startY = pre.centerY;
-                    endX = curr.left;
-                    endY = curr.centerY;
+                    // Sequential: Left-to-Right (+X) flow arrow
+                    if (pre.right <= curr.left + 10) {
+                        // Pre is to the left of Curr (standard sequential step)
+                        startX = pre.right;
+                        startY = pre.centerY;
+                        endX = curr.left;
+                        endY = curr.centerY;
+                    } else if (pre.left >= curr.right - 10) {
+                        // Pre is to the right of Curr
+                        startX = pre.left;
+                        startY = pre.centerY;
+                        endX = curr.right;
+                        endY = curr.centerY;
+                    } else {
+                        // Overlapping horizontally (e.g. step in different layer)
+                        if (curr.centerX >= pre.centerX) {
+                            startX = pre.right;
+                            startY = pre.centerY;
+                            endX = curr.right;
+                            endY = curr.centerY;
+                        } else {
+                            startX = pre.left;
+                            startY = pre.centerY;
+                            endX = curr.left;
+                            endY = curr.centerY;
+                        }
+                    }
 
-                    const deltaX = Math.max(20, Math.abs(endX - startX) / 2);
-                    pathD = `M ${startX} ${startY} C ${startX + deltaX} ${startY}, ${endX - deltaX} ${endY}, ${endX} ${endY}`;
+                    const isSameY = Math.abs(startY - endY) < 15;
+                    if (isSameY && startX < endX) {
+                        // Straight horizontal arrow line for adjacent steps in same layer
+                        pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
+                    } else {
+                        // Smooth S-curve for cross-layer or offset steps
+                        const deltaX = Math.max(30, Math.abs(endX - startX) / 2);
+                        const dir = startX <= endX ? 1 : -1;
+                        pathD = `M ${startX} ${startY} C ${startX + dir * deltaX} ${startY}, ${endX - dir * deltaX} ${endY}, ${endX} ${endY}`;
+                    }
                 } else {
                     // Parallel: Dashed line arrow
                     if (pre.centerY < curr.centerY - 20) {
