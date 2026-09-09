@@ -345,9 +345,6 @@
         .bs-row { background-color: #fef4e6; }
         .bs-label { background-color: #fbcc8e; }
         
-        .sp-row { background-color: #f0f4f8; }
-        .sp-label { background-color: #9fc3e5; }
-
         /* Floating Character Modal Overlay */
         #character-modal {
             position: fixed !important;
@@ -361,6 +358,86 @@
             z-index: 999999 !important;
             align-items: center !important;
             justify-content: center !important;
+        }
+
+        /* Print Rules for Export to PDF Functionality */
+        @page {
+            size: A4 landscape;
+            margin: 8mm;
+        }
+
+        @media print {
+            /* Hide non-blueprint elements */
+            header,
+            .top-bar,
+            .steps-frame,
+            .actions-frame,
+            #saved-blueprints-sidebar,
+            #blueprint-loading-overlay,
+            .no-print,
+            button,
+            #character-modal {
+                display: none !important;
+            }
+
+            body, html {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                overflow: visible !important;
+                width: 100% !important;
+                height: auto !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .main-layout, .center-workspace {
+                display: block !important;
+                width: 100% !important;
+                height: auto !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                overflow: visible !important;
+            }
+
+            #print-title-header {
+                display: flex !important;
+                align-items: center !important;
+                gap: 8px !important;
+                font-size: 14pt !important;
+                font-weight: 800 !important;
+                color: #0f172a !important;
+                margin-bottom: 14px !important;
+                direction: rtl !important;
+            }
+
+            .blueprint-frame {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                border-radius: 8px !important;
+                padding: 12px !important;
+                overflow: visible !important;
+                width: 100% !important;
+                max-width: none !important;
+                height: auto !important;
+                page-break-inside: avoid !important;
+            }
+
+            .blueprint-container {
+                overflow: visible !important;
+                width: 100% !important;
+                min-width: 0 !important;
+            }
+
+            .steps-cards-container {
+                overflow: visible !important;
+            }
+
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
         }
     </style>
 </head>
@@ -602,7 +679,7 @@
                         </svg>
                         <span>تصدير كصورة</span>
                     </button>
-                    <button class="action-btn other-action-btn opacity-40 cursor-not-allowed pointer-events-none" disabled type="button">
+                    <button class="action-btn other-action-btn opacity-40 cursor-not-allowed pointer-events-none" id="export-pdf-btn" onclick="exportBlueprintPDF()" disabled type="button">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                             <polyline points="14 2 14 8 20 8"></polyline>
@@ -2051,6 +2128,64 @@
 
             const targetUrl = `interactive.html?id=${encodeURIComponent(currentBlueprint.id)}`;
             window.open(targetUrl, '_blank');
+        };
+
+        // Action Buttons: Export to PDF ("تصدير كـ PDF")
+        window.exportBlueprintPDF = function() {
+            if (!currentBlueprint.steps || currentBlueprint.steps.length === 0) {
+                showToast("يرجى إضافة خطوات أولاً للتصدير كـ PDF");
+                return;
+            }
+
+            ensureBlueprintTitle();
+
+            let printHeader = document.getElementById('print-title-header');
+            if (!printHeader) {
+                printHeader = document.createElement('div');
+                printHeader.id = 'print-title-header';
+                printHeader.className = 'hidden';
+                const frame = document.getElementById('blueprint-frame');
+                if (frame && frame.parentNode) {
+                    frame.parentNode.insertBefore(printHeader, frame);
+                }
+            }
+
+            printHeader.innerHTML = `
+                <span style="font-weight:700; color:#64748b;">اسم الرحلة:</span>
+                <span style="font-weight:900; color:#0f172a; font-size: 16px;">${currentBlueprint.title || 'رحلة بدون عنوان'}</span>
+            `;
+
+            if (window.renderCanvasConnections) {
+                window.renderCanvasConnections();
+            }
+
+            const container = document.getElementById('blueprint-container');
+            let originalTransform = '';
+            let originalTransformOrigin = '';
+
+            if (container) {
+                originalTransform = container.style.transform || '';
+                originalTransformOrigin = container.style.transformOrigin || '';
+
+                const containerWidth = container.scrollWidth || container.offsetWidth;
+                const targetWidth = 1050;
+                if (containerWidth > targetWidth) {
+                    const fitScale = targetWidth / containerWidth;
+                    container.style.transformOrigin = 'right top';
+                    container.style.transform = `scale(${fitScale})`;
+                    if (window.renderCanvasConnections) window.renderCanvasConnections();
+                }
+            }
+
+            setTimeout(() => {
+                window.print();
+
+                if (container) {
+                    container.style.transform = originalTransform;
+                    container.style.transformOrigin = originalTransformOrigin;
+                    if (window.renderCanvasConnections) window.renderCanvasConnections();
+                }
+            }, 150);
         };
 
         // Action Buttons: Copy Shareable Link ("نسخ الرابط")
