@@ -356,12 +356,29 @@
             }
             document.title = `${currentBlueprint.title || 'المخطط التفاعلي'} - DXO Service Blueprint`;
 
-            // Hide loading overlay
-            const overlay = document.getElementById('blueprint-loading-overlay');
-            if (overlay) overlay.classList.add('hidden');
-
             // Render Blueprint Cards & Connections (Exact match with index.html)
             renderBlueprint();
+
+            // Auto-trigger print functionality if print=1 query parameter is present
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('print') === '1' || params.get('print') === 'true') {
+                setTimeout(() => {
+                    const container = document.getElementById('blueprint-container');
+                    if (container) {
+                        const containerWidth = container.scrollWidth || container.offsetWidth;
+                        const targetWidth = 1050;
+                        if (containerWidth > targetWidth) {
+                            const fitScale = targetWidth / containerWidth;
+                            container.style.transformOrigin = 'right top';
+                            container.style.transform = `scale(${fitScale})`;
+                            if (window.renderCanvasConnections) window.renderCanvasConnections();
+                        }
+                    }
+                    setTimeout(() => {
+                        window.print();
+                    }, 200);
+                }, 350);
+            }
         }
 
         function renderBlueprint() {

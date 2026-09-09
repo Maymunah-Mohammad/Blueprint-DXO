@@ -2131,61 +2131,26 @@
         };
 
         // Action Buttons: Export to PDF ("تصدير كـ PDF")
-        window.exportBlueprintPDF = function() {
+        window.exportBlueprintPDF = async function() {
             if (!currentBlueprint.steps || currentBlueprint.steps.length === 0) {
                 showToast("يرجى إضافة خطوات أولاً للتصدير كـ PDF");
                 return;
             }
 
             ensureBlueprintTitle();
+            window.showLoading("جاري تحضير ملف PDF للتصدير...");
 
-            let printHeader = document.getElementById('print-title-header');
-            if (!printHeader) {
-                printHeader = document.createElement('div');
-                printHeader.id = 'print-title-header';
-                printHeader.className = 'hidden';
-                const frame = document.getElementById('blueprint-frame');
-                if (frame && frame.parentNode) {
-                    frame.parentNode.insertBefore(printHeader, frame);
-                }
+            try {
+                localStorage.setItem('current_blueprint_backup', JSON.stringify(currentBlueprint));
+                await saveBlueprintToServer(false);
+            } catch(e) {
+                console.error("Auto-save before PDF export error:", e);
+            } finally {
+                window.hideLoading();
             }
 
-            printHeader.innerHTML = `
-                <span style="font-weight:700; color:#64748b;">اسم الرحلة:</span>
-                <span style="font-weight:900; color:#0f172a; font-size: 16px;">${currentBlueprint.title || 'رحلة بدون عنوان'}</span>
-            `;
-
-            if (window.renderCanvasConnections) {
-                window.renderCanvasConnections();
-            }
-
-            const container = document.getElementById('blueprint-container');
-            let originalTransform = '';
-            let originalTransformOrigin = '';
-
-            if (container) {
-                originalTransform = container.style.transform || '';
-                originalTransformOrigin = container.style.transformOrigin || '';
-
-                const containerWidth = container.scrollWidth || container.offsetWidth;
-                const targetWidth = 1050;
-                if (containerWidth > targetWidth) {
-                    const fitScale = targetWidth / containerWidth;
-                    container.style.transformOrigin = 'right top';
-                    container.style.transform = `scale(${fitScale})`;
-                    if (window.renderCanvasConnections) window.renderCanvasConnections();
-                }
-            }
-
-            setTimeout(() => {
-                window.print();
-
-                if (container) {
-                    container.style.transform = originalTransform;
-                    container.style.transformOrigin = originalTransformOrigin;
-                    if (window.renderCanvasConnections) window.renderCanvasConnections();
-                }
-            }, 150);
+            const targetUrl = `interactive.html?id=${encodeURIComponent(currentBlueprint.id || '')}&print=1`;
+            window.open(targetUrl, '_blank');
         };
 
         // Action Buttons: Copy Shareable Link ("نسخ الرابط")
