@@ -132,31 +132,59 @@
 
         @page {
             size: A4 landscape;
-            margin: 8mm;
+            margin: 4mm;
         }
 
         @media print {
             header, .no-print, button {
                 display: none !important;
             }
-            body, html, .interactive-workspace {
-                overflow: visible !important;
-                height: auto !important;
+            html, body {
+                width: 100% !important;
+                height: 100% !important;
+                max-height: 100vh !important;
+                overflow: hidden !important;
                 background: white !important;
                 padding: 0 !important;
+                margin: 0 !important;
+            }
+            .interactive-workspace {
+                width: 100% !important;
+                height: 100% !important;
+                max-height: 100vh !important;
+                overflow: hidden !important;
+                background: white !important;
+                padding: 4px !important;
+                margin: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: flex-start !important;
+                align-items: stretch !important;
+            }
+            #journey-title-container {
+                margin: 0 0 4px 0 !important;
+                padding: 0 4px !important;
+                shrink: 0 !important;
             }
             .blueprint-frame {
                 box-shadow: none !important;
                 border: 1px solid #cbd5e1 !important;
                 border-radius: 8px !important;
-                padding: 12px !important;
-                overflow: visible !important;
+                padding: 8px !important;
+                overflow: hidden !important;
                 width: 100% !important;
-                max-width: none !important;
                 height: auto !important;
-                page-break-inside: avoid !important;
+                max-height: calc(100vh - 35px) !important;
+                margin: 0 !important;
             }
-            * {
+            .blueprint-container {
+                overflow: visible !important;
+            }
+            *, .section-box, .line-container, .blueprint-frame, .blueprint-container {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                page-break-before: avoid !important;
+                page-break-after: avoid !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
@@ -166,7 +194,7 @@
 <body>
     <main class="interactive-workspace" dir="rtl">
         <!-- Blueprint Title Header -->
-        <div class="flex items-center gap-2 px-1 pb-3 shrink-0" dir="rtl">
+        <div id="journey-title-container" class="flex items-center gap-2 px-1 pb-3 shrink-0" dir="rtl">
             <span class="text-xs font-bold text-gray-500">اسم الرحلة:</span>
             <h1 id="journey-title-display" class="text-base font-extrabold text-gray-900 truncate">جاري التحميل...</h1>
         </div>
@@ -366,9 +394,16 @@
                     const container = document.getElementById('blueprint-container');
                     if (container) {
                         const containerWidth = container.scrollWidth || container.offsetWidth;
-                        const targetWidth = 1050;
-                        if (containerWidth > targetWidth) {
-                            const fitScale = targetWidth / containerWidth;
+                        const containerHeight = container.scrollHeight || container.offsetHeight;
+
+                        const maxPrintWidth = 1050; // A4 Landscape printable width
+                        const maxPrintHeight = 650; // A4 Landscape printable height minus title
+
+                        const scaleX = maxPrintWidth / containerWidth;
+                        const scaleY = maxPrintHeight / containerHeight;
+                        const fitScale = Math.min(1.0, scaleX, scaleY);
+
+                        if (fitScale < 1.0) {
                             container.style.transformOrigin = 'right top';
                             container.style.transform = `scale(${fitScale})`;
                             if (window.renderCanvasConnections) window.renderCanvasConnections();
