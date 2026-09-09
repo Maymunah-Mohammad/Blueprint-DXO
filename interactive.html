@@ -147,38 +147,17 @@
     </style>
 </head>
 <body>
-    <div class="flex flex-col h-screen w-screen overflow-hidden">
-        <!-- Header Bar: Journey Title + Actions -->
-        <header class="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between z-50 shrink-0 shadow-lg no-print" dir="rtl">
-            <div class="flex items-center gap-4">
-                <div class="bg-indigo-600/30 border border-indigo-500/40 p-2 rounded-xl text-indigo-400 flex items-center justify-center">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
-                        <line x1="9" y1="3" x2="9" y2="21"></line>
-                        <line x1="15" y1="3" x2="15" y2="21"></line>
-                    </svg>
-                </div>
-                <div class="flex flex-col">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold text-slate-400">اسم الرحلة:</span>
-                        <h1 id="journey-title-display" class="text-base font-extrabold text-white truncate max-w-md">جاري التحميل...</h1>
-                    </div>
-                    <span class="text-[11px] text-slate-400 font-medium">عرض المخطط التفاعلي (Blueprint Frame) كما هو بدون أي تعديل</span>
-                </div>
+    <main class="interactive-workspace" dir="rtl">
+        <!-- Clean Title Header (No Dark Nav) -->
+        <div class="w-full max-w-max flex items-center justify-between px-1 mb-1">
+            <div class="flex items-center gap-2">
+                <span class="text-sm font-bold text-slate-500">اسم الرحلة:</span>
+                <h1 id="journey-title-display" class="text-xl font-extrabold text-slate-900">جاري التحميل...</h1>
             </div>
-
-            <!-- Action Controls -->
-            <div class="flex items-center gap-3">
-                <button type="button" onclick="window.print()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl transition-all cursor-pointer text-xs font-bold flex items-center gap-2 shadow-sm">
-                    <span>🖨️</span>
-                    <span>طباعة المخطط</span>
-                </button>
-            </div>
-        </header>
+        </div>
 
         <!-- Main Workspace holding the exact Blueprint Frame -->
-        <main class="interactive-workspace">
-            <div class="blueprint-frame relative" id="blueprint-frame">
+        <div class="blueprint-frame relative" id="blueprint-frame">
                 <!-- Loading Overlay inside Blueprint Frame -->
                 <div id="blueprint-loading-overlay" class="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-40 flex flex-col items-center justify-center gap-3 transition-opacity duration-300 hidden" dir="rtl">
                     <div class="flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-2xl shadow-xl border border-gray-800 animate-in fade-in zoom-in-95 duration-200">
@@ -269,7 +248,6 @@
                 </div>
             </div>
         </main>
-    </div>
 
     <!-- JavaScript Data Loading & Connection Rendering (Exact Mirror of index.html) -->
     <script>
