@@ -142,15 +142,17 @@
             html, body {
                 width: 100% !important;
                 height: 100% !important;
-                overflow: visible !important;
+                max-height: 100vh !important;
+                overflow: hidden !important;
                 background: white !important;
                 padding: 0 !important;
                 margin: 0 !important;
             }
             .interactive-workspace {
                 width: 100% !important;
-                height: auto !important;
-                overflow: visible !important;
+                height: 100% !important;
+                max-height: 100vh !important;
+                overflow: hidden !important;
                 background: white !important;
                 padding: 2px !important;
                 margin: 0 !important;
@@ -169,31 +171,31 @@
                 border: 1px solid #cbd5e1 !important;
                 border-radius: 8px !important;
                 padding: 8px !important;
-                overflow: visible !important;
+                overflow: hidden !important;
                 width: 100% !important;
-                height: auto !important;
-                max-height: none !important;
+                height: 100% !important;
+                flex: 1 !important;
                 margin: 0 !important;
             }
             .blueprint-container {
                 overflow: visible !important;
                 width: 100% !important;
-                gap: 5px !important;
+                gap: 4px !important;
             }
             .section-box {
-                min-height: 80px !important;
+                min-height: 70px !important;
             }
             .label-box {
-                min-height: 70px !important;
-                padding: 6px 4px !important;
-                width: 170px !important;
+                min-height: 60px !important;
+                padding: 4px !important;
+                width: 160px !important;
             }
             .line-container {
-                height: 20px !important;
+                height: 16px !important;
             }
             .line-text {
-                padding: 2px 8px !important;
-                font-size: 10px !important;
+                padding: 1px 8px !important;
+                font-size: 9px !important;
             }
             .steps-cards-container {
                 padding: 4px !important;
@@ -413,23 +415,18 @@
                     const frame = document.getElementById('blueprint-frame');
                     if (container && frame) {
                         const frameWidth = frame.clientWidth || 1050;
-                        const frameHeight = 620;
-
                         const containerWidth = container.scrollWidth || container.offsetWidth;
-                        const containerHeight = container.scrollHeight || container.offsetHeight;
 
-                        const scaleX = frameWidth / containerWidth;
-                        const scaleY = frameHeight / containerHeight;
-                        const fitScale = Math.min(1.0, scaleX, scaleY);
-
-                        if (fitScale < 1.0) {
+                        if (containerWidth > frameWidth) {
+                            const fitScale = frameWidth / containerWidth;
                             container.style.transformOrigin = 'right top';
                             container.style.transform = `scale(${fitScale})`;
                             container.style.width = (100 / fitScale) + '%';
-                            if (window.renderCanvasConnections) window.renderCanvasConnections();
                         } else {
+                            container.style.transform = 'none';
                             container.style.width = '100%';
                         }
+                        if (window.renderCanvasConnections) window.renderCanvasConnections();
                     }
                     setTimeout(() => {
                         window.print();
