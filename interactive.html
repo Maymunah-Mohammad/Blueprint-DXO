@@ -401,20 +401,18 @@
                     if (targetPre) {
                         const preTitle = targetPre.title || 'خطوة سابقة';
                         if (step.relation_type === 'parallel') {
-                            relationBadgeHtml = `<div class="bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center justify-between gap-1 w-full text-right" dir="rtl">
+                            relationBadgeHtml = `<div class="bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center gap-1 w-full text-right" dir="rtl">
                                 <div class="flex items-center gap-1 truncate" dir="rtl">
                                     <span>⚡ بالتوازي مع:</span>
                                     <span class="font-bold truncate">${preTitle}</span>
                                 </div>
-                                <button onclick="goToEditor()" class="text-indigo-400 hover:text-indigo-600 font-bold px-1 rounded hover:bg-indigo-100 transition-colors shrink-0" title="تعديل الخطوة في المحرر">🔗</button>
                             </div>`;
                         } else {
-                            relationBadgeHtml = `<div class="bg-blue-50 text-blue-700 border border-blue-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center justify-between gap-1 w-full text-right" dir="rtl">
+                            relationBadgeHtml = `<div class="bg-blue-50 text-blue-700 border border-blue-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center gap-1 w-full text-right" dir="rtl">
                                 <div class="flex items-center gap-1 truncate" dir="rtl">
                                     <span>🔗 يتبع الخطوة:</span>
                                     <span class="font-bold truncate">${preTitle}</span>
                                 </div>
-                                <button onclick="goToEditor()" class="text-blue-400 hover:text-blue-600 font-bold px-1 rounded hover:bg-blue-100 transition-colors shrink-0" title="تعديل الخطوة في المحرر">🔗</button>
                             </div>`;
                         }
                     }
@@ -439,15 +437,10 @@
                 }
 
                 card.innerHTML = `
-                    <!-- Card Top Header Banner (Figma Design 61:1280 - 100% Exact Match with index.html) -->
+                    <!-- Card Top Header Banner -->
                     <div class="bg-[#edf5fd] border-b border-[#d0e3f7] px-3.5 py-2 flex justify-between items-center relative">
                         <span class="font-bold text-xs text-[#0369a1] truncate pr-2">${step.title || 'اسم الخطوة'}</span>
-                        <div class="flex items-center gap-1 shrink-0">
-                            <button onclick="goToEditor()" class="text-gray-400 hover:text-blue-600 p-1 rounded-md hover:bg-white/60 transition-colors cursor-pointer" title="تعديل الخطوة في المحرر">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                            </button>
-                        </div>
-                    </div>
+                    </div>`;
 
                     <!-- Card Body Content -->
                     <div class="p-3.5 flex flex-col gap-2.5">
