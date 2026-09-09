@@ -98,9 +98,10 @@
         .arabic-text { font-size: 13px; font-weight: 800; }
         .english-text { font-size: 10px; font-weight: 700; opacity: 0.8; }
 
-        /* Blueprint Frame Container - Exact match with index.html */
+        /* Blueprint Frame Container - 100% Exact match with index.html */
         .blueprint-frame {
             flex: 1;
+            width: 100%;
             min-width: 0;
             min-height: 0;
             overflow: auto !important;
@@ -118,11 +119,11 @@
             min-width: max-content;
         }
 
-        /* Workspace container */
+        /* Workspace container filling full screen */
         .interactive-workspace {
             width: 100vw;
-            height: calc(100vh - 64px);
-            overflow: auto;
+            height: 100vh;
+            overflow: hidden;
             padding: 16px;
             display: flex;
             flex-direction: column;
@@ -148,106 +149,104 @@
 </head>
 <body>
     <main class="interactive-workspace" dir="rtl">
-        <!-- Clean Title Header (No Dark Nav) -->
-        <div class="w-full max-w-max flex items-center justify-between px-1 mb-1">
-            <div class="flex items-center gap-2">
-                <span class="text-sm font-bold text-slate-500">اسم الرحلة:</span>
-                <h1 id="journey-title-display" class="text-xl font-extrabold text-slate-900">جاري التحميل...</h1>
-            </div>
+        <!-- Blueprint Title Header -->
+        <div class="flex items-center gap-2 px-1 pb-3 shrink-0" dir="rtl">
+            <span class="text-xs font-bold text-gray-500">اسم الرحلة:</span>
+            <h1 id="journey-title-display" class="text-base font-extrabold text-gray-900 truncate">جاري التحميل...</h1>
         </div>
 
         <!-- Main Workspace holding the exact Blueprint Frame -->
         <div class="blueprint-frame relative" id="blueprint-frame">
-                <!-- Loading Overlay inside Blueprint Frame -->
-                <div id="blueprint-loading-overlay" class="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-40 flex flex-col items-center justify-center gap-3 transition-opacity duration-300 hidden" dir="rtl">
-                    <div class="flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-2xl shadow-xl border border-gray-800 animate-in fade-in zoom-in-95 duration-200">
-                        <svg class="animate-spin h-5 w-5 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span id="blueprint-loading-text" class="text-xs font-bold tracking-wide">جاري المعالجة والتحميل...</span>
-                    </div>
-                </div>
-
-                <div class="blueprint-container relative" id="blueprint-container">
-                    <!-- Dynamic SVG Connections Overlay for Pre-step Arrows -->
-                    <svg id="blueprint-connections-svg" class="absolute inset-0 w-full h-full pointer-events-none z-10" style="overflow: visible;">
-                        <defs>
-                            <marker id="arrow-solid" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
-                            </marker>
-                            <marker id="arrow-dashed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb" />
-                            </marker>
-                        </defs>
-                        <g id="svg-connections-group"></g>
+            <!-- Loading Overlay inside Blueprint Frame -->
+            <div id="blueprint-loading-overlay" class="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-40 flex flex-col items-center justify-center gap-3 transition-opacity duration-300 hidden" dir="rtl">
+                <div class="flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-2xl shadow-xl border border-gray-800 animate-in fade-in zoom-in-95 duration-200">
+                    <svg class="animate-spin h-5 w-5 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-
-                    <!-- Customer Actions -->
-                    <div class="section-box ca-row">
-                        <div class="label-box ca-label flex-shrink-0">
-                            <span class="arabic-text" dir="rtl">أفعال العميل</span>
-                            <span class="english-text">(Customer Actions)</span>
-                        </div>
-                        <div class="steps-cards-container flex gap-10 p-3.5 flex-1 items-center" id="cards-ca" dir="ltr"></div>
-                    </div>
-
-                    <!-- Line of Interaction -->
-                    <div class="line-container">
-                        <div class="line-text">
-                            <span dir="rtl">خط التفاعل</span>
-                            <span>(LINE OF INTERACTION)</span>
-                        </div>
-                        <div class="line-dash"></div>
-                    </div>
-
-                    <!-- Frontstage -->
-                    <div class="section-box fs-row">
-                        <div class="label-box fs-label flex-shrink-0">
-                            <span class="arabic-text" dir="rtl">الواجهة الأمامية / الخط الأمامي</span>
-                            <span class="english-text">(Frontstage)</span>
-                        </div>
-                        <div class="steps-cards-container flex gap-10 p-3.5 flex-1 items-center" id="cards-fs" dir="ltr"></div>
-                    </div>
-
-                    <!-- Line of Visibility -->
-                    <div class="line-container">
-                        <div class="line-text">
-                            <span dir="rtl">خط الرؤية</span>
-                            <span>(LINE OF VISIBILITY)</span>
-                        </div>
-                        <div class="line-dash"></div>
-                    </div>
-
-                    <!-- Backstage -->
-                    <div class="section-box bs-row">
-                        <div class="label-box bs-label flex-shrink-0">
-                            <span class="arabic-text" dir="rtl">الكواليس / الخط الخلفي</span>
-                            <span class="english-text">(Backstage)</span>
-                        </div>
-                        <div class="steps-cards-container flex gap-10 p-3.5 flex-1 items-center" id="cards-bs" dir="ltr"></div>
-                    </div>
-
-                    <!-- Line of Internal Interaction -->
-                    <div class="line-container">
-                        <div class="line-text">
-                            <span dir="rtl">خط التفاعل الداخلي</span>
-                            <span>(LINE OF INTERNAL INTERACTION)</span>
-                        </div>
-                        <div class="line-dash"></div>
-                    </div>
-
-                    <!-- Support Processes -->
-                    <div class="section-box sp-row">
-                        <div class="label-box sp-label flex-shrink-0">
-                            <span class="arabic-text" dir="rtl">العمليات والدعم</span>
-                            <span class="english-text">(Support Processes / Behind the scenes)</span>
-                        </div>
-                        <div class="steps-cards-container flex gap-10 p-3.5 flex-1 items-center" id="cards-sp" dir="ltr"></div>
-                    </div>
+                    <span id="blueprint-loading-text" class="text-xs font-bold tracking-wide">جاري المعالجة والتحميل...</span>
                 </div>
             </div>
-        </main>
+
+            <div class="blueprint-container relative" id="blueprint-container">
+                <!-- Dynamic SVG Connections Overlay for Pre-step Arrows -->
+                <svg id="blueprint-connections-svg" class="absolute inset-0 w-full h-full pointer-events-none z-10" style="overflow: visible;">
+                    <defs>
+                        <marker id="arrow-solid" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
+                        </marker>
+                        <marker id="arrow-dashed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb" />
+                        </marker>
+                    </defs>
+                    <g id="svg-connections-group"></g>
+                </svg>
+
+                <!-- Customer Actions -->
+                <div class="section-box ca-row">
+                    <div class="label-box ca-label flex-shrink-0">
+                        <span class="arabic-text" dir="rtl">أفعال العميل</span>
+                        <span class="english-text">(Customer Actions)</span>
+                    </div>
+                    <div class="steps-cards-container flex gap-10 p-3.5 flex-1 items-center" id="cards-ca" dir="ltr"></div>
+                </div>
+
+                <!-- Line of Interaction -->
+                <div class="line-container">
+                    <div class="line-text">
+                        <span dir="rtl">خط التفاعل</span>
+                        <span>(LINE OF INTERACTION)</span>
+                    </div>
+                    <div class="line-dash"></div>
+                </div>
+
+                <!-- Frontstage -->
+                <div class="section-box fs-row">
+                    <div class="label-box fs-label flex-shrink-0">
+                        <span class="arabic-text" dir="rtl">الواجهة الأمامية / الخط الأمامي</span>
+                        <span class="english-text">(Frontstage)</span>
+                    </div>
+                    <div class="steps-cards-container flex gap-10 p-3.5 flex-1 items-center" id="cards-fs" dir="ltr"></div>
+                </div>
+
+                <!-- Line of Visibility -->
+                <div class="line-container">
+                    <div class="line-text">
+                        <span dir="rtl">خط الرؤية</span>
+                        <span>(LINE OF VISIBILITY)</span>
+                    </div>
+                    <div class="line-dash"></div>
+                </div>
+
+                <!-- Backstage -->
+                <div class="section-box bs-row">
+                    <div class="label-box bs-label flex-shrink-0">
+                        <span class="arabic-text" dir="rtl">الكواليس / الخط الخلفي</span>
+                        <span class="english-text">(Backstage)</span>
+                    </div>
+                    <div class="steps-cards-container flex gap-10 p-3.5 flex-1 items-center" id="cards-bs" dir="ltr"></div>
+                </div>
+
+                <!-- Line of Internal Interaction -->
+                <div class="line-container">
+                    <div class="line-text">
+                        <span dir="rtl">خط التفاعل الداخلي</span>
+                        <span>(LINE OF INTERNAL INTERACTION)</span>
+                    </div>
+                    <div class="line-dash"></div>
+                </div>
+
+                <!-- Support Processes -->
+                <div class="section-box sp-row">
+                    <div class="label-box sp-label flex-shrink-0">
+                        <span class="arabic-text" dir="rtl">العمليات والدعم</span>
+                        <span class="english-text">(Support Processes / Behind the scenes)</span>
+                    </div>
+                    <div class="steps-cards-container flex gap-10 p-3.5 flex-1 items-center" id="cards-sp" dir="ltr"></div>
+                </div>
+            </div>
+        </div>
+    </main>
 
     <!-- JavaScript Data Loading & Connection Rendering (Exact Mirror of index.html) -->
     <script>
@@ -286,39 +285,51 @@
             return { bg: '#eaf3fe', text: '#0369a1', border: '#9fccfd', fullLayer: 'أفعال العميل (Customer Actions)' };
         }
 
-        function goToEditor() {
-            if (window.opener && !window.opener.closed) {
-                window.close();
-            } else {
-                const urlParams = new URLSearchParams(window.location.search);
-                const bpId = urlParams.get('id') || currentBlueprint.id;
-                window.location.href = bpId ? `/?id=${encodeURIComponent(bpId)}` : '/';
-            }
-        }
-
         async function initInteractivePage() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const bpId = urlParams.get('id');
+            let loaded = false;
 
-            if (bpId) {
-                try {
-                    const res = await fetch(`/api/blueprints/${encodeURIComponent(bpId)}?t=${Date.now()}`);
-                    if (res.ok) {
-                        currentBlueprint = await res.json();
-                    } else {
-                        throw new Error("Failed to load blueprint from server");
-                    }
-                } catch(e) {
-                    console.warn("Could not fetch blueprint from server, trying local cache...", e);
-                    const localBackup = localStorage.getItem('current_blueprint_backup');
-                    if (localBackup) {
-                        try { currentBlueprint = JSON.parse(localBackup); } catch(err){}
+            // 1. Instant load from window.opener (parent editor window)
+            try {
+                if (window.opener && window.opener.currentBlueprint && window.opener.currentBlueprint.steps && window.opener.currentBlueprint.steps.length > 0) {
+                    currentBlueprint = JSON.parse(JSON.stringify(window.opener.currentBlueprint));
+                    loaded = true;
+                }
+            } catch(e) {
+                console.warn("Could not read from window.opener:", e);
+            }
+
+            // 2. Load from server API if ID is in URL and not loaded from opener
+            if (!loaded) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const bpId = urlParams.get('id');
+                if (bpId) {
+                    try {
+                        const res = await fetch(`/api/blueprints/${encodeURIComponent(bpId)}?t=${Date.now()}`);
+                        if (res.ok) {
+                            currentBlueprint = await res.json();
+                            loaded = true;
+                        }
+                    } catch(e) {
+                        console.warn("Could not fetch blueprint from server:", e);
                     }
                 }
-            } else {
-                const localBackup = localStorage.getItem('current_blueprint_backup');
-                if (localBackup) {
-                    try { currentBlueprint = JSON.parse(localBackup); } catch(e){}
+            }
+
+            // 3. Fallback to LocalStorage
+            if (!loaded) {
+                const keys = ['current_blueprint_backup', 'current_blueprint', 'dxo_service_blueprint'];
+                for (const k of keys) {
+                    const raw = localStorage.getItem(k);
+                    if (raw) {
+                        try {
+                            const parsed = JSON.parse(raw);
+                            if (parsed && parsed.steps && parsed.steps.length > 0) {
+                                currentBlueprint = parsed;
+                                loaded = true;
+                                break;
+                            }
+                        } catch(e){}
+                    }
                 }
             }
 
@@ -328,6 +339,10 @@
                 titleEl.textContent = currentBlueprint.title || 'رحلة بدون عنوان';
             }
             document.title = `${currentBlueprint.title || 'المخطط التفاعلي'} - DXO Service Blueprint`;
+
+            // Hide loading overlay
+            const overlay = document.getElementById('blueprint-loading-overlay');
+            if (overlay) overlay.classList.add('hidden');
 
             // Render Blueprint Cards & Connections (Exact match with index.html)
             renderBlueprint();
@@ -416,12 +431,12 @@
 
                 card.innerHTML = `
                     <!-- Card Top Header Banner -->
-                    <div class="bg-[#edf5fd] border-b border-[#d0e3f7] px-3.5 py-2 flex justify-between items-center relative">
+                    <div class="bg-[#edf5fd] border-b border-[#d0e3f7] px-3.5 py-2 flex justify-between items-center relative" dir="rtl">
                         <span class="font-bold text-xs text-[#0369a1] truncate pr-2">${step.title || 'اسم الخطوة'}</span>
-                    </div>`;
+                    </div>
 
                     <!-- Card Body Content -->
-                    <div class="p-3.5 flex flex-col gap-2.5">
+                    <div class="p-3.5 flex flex-col gap-2.5" dir="rtl">
                         <div class="flex justify-between items-center gap-2 flex-wrap">
                             ${charHtml}
                             ${durationHtml}
