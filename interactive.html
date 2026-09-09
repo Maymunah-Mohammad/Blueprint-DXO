@@ -373,6 +373,7 @@
                 const card = document.createElement('div');
                 card.className = "bg-white border border-[#d2d6db] rounded-2xl shadow-sm flex flex-col min-w-[270px] max-w-[290px] relative z-20 text-right text-xs shrink-0 transition-all hover:shadow-md overflow-hidden group";
                 card.setAttribute('data-step-id', step.id);
+                card.setAttribute('dir', 'rtl');
 
                 let charHtml = '';
                 if (step.character) {
@@ -380,7 +381,7 @@
                     const charLayer = charObj ? (typeof charObj === 'string' ? step.layer : charObj.layer) : step.layer;
                     const colorStyle = getLayerColorStyle(charLayer);
 
-                    charHtml = `<div class="font-bold px-2.5 py-1 rounded-full text-[11px] flex items-center gap-1.5 w-fit border shadow-2xs" style="background-color: ${colorStyle.bg}; color: ${colorStyle.text}; border-color: ${colorStyle.border};">
+                    charHtml = `<div class="font-bold px-2.5 py-1 rounded-full text-[11px] flex items-center gap-1.5 w-fit border shadow-2xs" style="background-color: ${colorStyle.bg}; color: ${colorStyle.text}; border-color: ${colorStyle.border};" dir="rtl">
                         <span>👤</span>
                         <span>${step.character}</span>
                     </div>`;
@@ -388,7 +389,7 @@
 
                 let durationHtml = '';
                 if (step.duration) {
-                    durationHtml = `<div class="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-600 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-md w-fit">
+                    durationHtml = `<div class="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-600 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-md w-fit" dir="rtl">
                         <span>⏱️</span>
                         <span>${step.duration} ${step.timeUnit || ''}</span>
                     </div>`;
@@ -400,18 +401,18 @@
                     if (targetPre) {
                         const preTitle = targetPre.title || 'خطوة سابقة';
                         if (step.relation_type === 'parallel') {
-                            relationBadgeHtml = `<div class="bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center justify-between gap-1 w-full">
-                                <div class="flex items-center gap-1 truncate">
+                            relationBadgeHtml = `<div class="bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center justify-between gap-1 w-full text-right" dir="rtl">
+                                <div class="flex items-center gap-1 truncate" dir="rtl">
                                     <span>⚡ بالتوازي مع:</span>
-                                    <span class="font-bold">${preTitle}</span>
+                                    <span class="font-bold truncate">${preTitle}</span>
                                 </div>
                                 <button onclick="goToEditor()" class="text-indigo-400 hover:text-indigo-600 font-bold px-1 rounded hover:bg-indigo-100 transition-colors shrink-0" title="تعديل الخطوة في المحرر">🔗</button>
                             </div>`;
                         } else {
-                            relationBadgeHtml = `<div class="bg-blue-50 text-blue-700 border border-blue-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center justify-between gap-1 w-full">
-                                <div class="flex items-center gap-1 truncate">
+                            relationBadgeHtml = `<div class="bg-blue-50 text-blue-700 border border-blue-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center justify-between gap-1 w-full text-right" dir="rtl">
+                                <div class="flex items-center gap-1 truncate" dir="rtl">
                                     <span>🔗 يتبع الخطوة:</span>
-                                    <span class="font-bold">${preTitle}</span>
+                                    <span class="font-bold truncate">${preTitle}</span>
                                 </div>
                                 <button onclick="goToEditor()" class="text-blue-400 hover:text-blue-600 font-bold px-1 rounded hover:bg-blue-100 transition-colors shrink-0" title="تعديل الخطوة في المحرر">🔗</button>
                             </div>`;
