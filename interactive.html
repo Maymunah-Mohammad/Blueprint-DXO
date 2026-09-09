@@ -142,17 +142,15 @@
             html, body {
                 width: 100% !important;
                 height: 100% !important;
-                max-height: 100vh !important;
-                overflow: hidden !important;
+                overflow: visible !important;
                 background: white !important;
                 padding: 0 !important;
                 margin: 0 !important;
             }
             .interactive-workspace {
                 width: 100% !important;
-                height: 100% !important;
-                max-height: 100vh !important;
-                overflow: hidden !important;
+                height: auto !important;
+                overflow: visible !important;
                 background: white !important;
                 padding: 2px !important;
                 margin: 0 !important;
@@ -162,7 +160,7 @@
                 align-items: stretch !important;
             }
             #journey-title-container {
-                margin: 0 0 6px 0 !important;
+                margin: 0 0 4px 0 !important;
                 padding: 0 4px !important;
                 shrink: 0 !important;
             }
@@ -170,34 +168,35 @@
                 box-shadow: none !important;
                 border: 1px solid #cbd5e1 !important;
                 border-radius: 8px !important;
-                padding: 10px !important;
-                overflow: hidden !important;
+                padding: 8px !important;
+                overflow: visible !important;
                 width: 100% !important;
-                height: 100% !important;
-                flex: 1 !important;
+                height: auto !important;
+                max-height: none !important;
                 margin: 0 !important;
             }
             .blueprint-container {
                 overflow: visible !important;
                 width: 100% !important;
-                gap: 8px !important;
+                gap: 5px !important;
             }
             .section-box {
-                min-height: 95px !important;
+                min-height: 80px !important;
             }
             .label-box {
-                min-height: 85px !important;
-                padding: 8px 4px !important;
+                min-height: 70px !important;
+                padding: 6px 4px !important;
+                width: 170px !important;
             }
             .line-container {
-                height: 24px !important;
+                height: 20px !important;
             }
             .line-text {
-                padding: 2px 10px !important;
+                padding: 2px 8px !important;
                 font-size: 10px !important;
             }
             .steps-cards-container {
-                padding: 6px !important;
+                padding: 4px !important;
             }
             *, .section-box, .line-container, .blueprint-frame, .blueprint-container {
                 page-break-inside: avoid !important;
@@ -414,10 +413,16 @@
                     const frame = document.getElementById('blueprint-frame');
                     if (container && frame) {
                         const frameWidth = frame.clientWidth || 1050;
-                        const containerWidth = container.scrollWidth || container.offsetWidth;
+                        const frameHeight = 620;
 
-                        if (containerWidth > frameWidth) {
-                            const fitScale = frameWidth / containerWidth;
+                        const containerWidth = container.scrollWidth || container.offsetWidth;
+                        const containerHeight = container.scrollHeight || container.offsetHeight;
+
+                        const scaleX = frameWidth / containerWidth;
+                        const scaleY = frameHeight / containerHeight;
+                        const fitScale = Math.min(1.0, scaleX, scaleY);
+
+                        if (fitScale < 1.0) {
                             container.style.transformOrigin = 'right top';
                             container.style.transform = `scale(${fitScale})`;
                             container.style.width = (100 / fitScale) + '%';
