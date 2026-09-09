@@ -154,7 +154,7 @@
                 max-height: 100vh !important;
                 overflow: hidden !important;
                 background: white !important;
-                padding: 4px !important;
+                padding: 2px !important;
                 margin: 0 !important;
                 display: flex !important;
                 flex-direction: column !important;
@@ -162,7 +162,7 @@
                 align-items: stretch !important;
             }
             #journey-title-container {
-                margin: 0 0 4px 0 !important;
+                margin: 0 0 6px 0 !important;
                 padding: 0 4px !important;
                 shrink: 0 !important;
             }
@@ -170,15 +170,34 @@
                 box-shadow: none !important;
                 border: 1px solid #cbd5e1 !important;
                 border-radius: 8px !important;
-                padding: 8px !important;
+                padding: 10px !important;
                 overflow: hidden !important;
                 width: 100% !important;
-                height: auto !important;
-                max-height: calc(100vh - 35px) !important;
+                height: 100% !important;
+                flex: 1 !important;
                 margin: 0 !important;
             }
             .blueprint-container {
                 overflow: visible !important;
+                width: 100% !important;
+                gap: 8px !important;
+            }
+            .section-box {
+                min-height: 95px !important;
+            }
+            .label-box {
+                min-height: 85px !important;
+                padding: 8px 4px !important;
+            }
+            .line-container {
+                height: 24px !important;
+            }
+            .line-text {
+                padding: 2px 10px !important;
+                font-size: 10px !important;
+            }
+            .steps-cards-container {
+                padding: 6px !important;
             }
             *, .section-box, .line-container, .blueprint-frame, .blueprint-container {
                 page-break-inside: avoid !important;
@@ -392,21 +411,19 @@
             if (params.get('print') === '1' || params.get('print') === 'true') {
                 setTimeout(() => {
                     const container = document.getElementById('blueprint-container');
-                    if (container) {
+                    const frame = document.getElementById('blueprint-frame');
+                    if (container && frame) {
+                        const frameWidth = frame.clientWidth || 1050;
                         const containerWidth = container.scrollWidth || container.offsetWidth;
-                        const containerHeight = container.scrollHeight || container.offsetHeight;
 
-                        const maxPrintWidth = 1050; // A4 Landscape printable width
-                        const maxPrintHeight = 650; // A4 Landscape printable height minus title
-
-                        const scaleX = maxPrintWidth / containerWidth;
-                        const scaleY = maxPrintHeight / containerHeight;
-                        const fitScale = Math.min(1.0, scaleX, scaleY);
-
-                        if (fitScale < 1.0) {
+                        if (containerWidth > frameWidth) {
+                            const fitScale = frameWidth / containerWidth;
                             container.style.transformOrigin = 'right top';
                             container.style.transform = `scale(${fitScale})`;
+                            container.style.width = (100 / fitScale) + '%';
                             if (window.renderCanvasConnections) window.renderCanvasConnections();
+                        } else {
+                            container.style.width = '100%';
                         }
                     }
                     setTimeout(() => {
