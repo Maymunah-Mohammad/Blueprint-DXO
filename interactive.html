@@ -411,27 +411,49 @@
             const params = new URLSearchParams(window.location.search);
             if (params.get('print') === '1' || params.get('print') === 'true') {
                 setTimeout(() => {
-                    const container = document.getElementById('blueprint-container');
-                    const frame = document.getElementById('blueprint-frame');
-                    if (container && frame) {
-                        const frameWidth = frame.clientWidth || 1050;
-                        const containerWidth = container.scrollWidth || container.offsetWidth;
-
-                        if (containerWidth > frameWidth) {
-                            const fitScale = frameWidth / containerWidth;
-                            container.style.transformOrigin = 'right top';
-                            container.style.transform = `scale(${fitScale})`;
-                            container.style.width = (100 / fitScale) + '%';
-                        } else {
-                            container.style.transform = 'none';
-                            container.style.width = '100%';
-                        }
-                        if (window.renderCanvasConnections) window.renderCanvasConnections();
-                    }
+                    fitBlueprintForPrint();
                     setTimeout(() => {
                         window.print();
-                    }, 200);
+                    }, 250);
                 }, 350);
+            }
+        }
+
+        function fitBlueprintForPrint() {
+            const container = document.getElementById('blueprint-container');
+            const frame = document.getElementById('blueprint-frame');
+            if (!container || !frame) return;
+
+            container.style.transform = 'none';
+            container.style.width = 'max-content';
+            frame.style.height = 'auto';
+
+            const maxPrintWidth = 1040;
+            const maxPrintHeight = 600;
+
+            const contentWidth = container.scrollWidth || container.offsetWidth;
+            const contentHeight = container.scrollHeight || container.offsetHeight;
+
+            const scaleX = maxPrintWidth / contentWidth;
+            const scaleY = maxPrintHeight / contentHeight;
+
+            // Fit whichever dimension is dominant (if height > width fit height first, if width > height fit width first)
+            const fitScale = Math.min(1.0, scaleX, scaleY);
+
+            if (fitScale < 1.0) {
+                container.style.transformOrigin = 'right top';
+                container.style.transform = `scale(${fitScale})`;
+                container.style.width = (100 / fitScale) + '%';
+                const scaledHeight = Math.ceil(contentHeight * fitScale);
+                frame.style.height = scaledHeight + 'px';
+            } else {
+                container.style.transform = 'none';
+                container.style.width = '100%';
+                frame.style.height = 'auto';
+            }
+
+            if (window.renderCanvasConnections) {
+                window.renderCanvasConnections();
             }
         }
 
