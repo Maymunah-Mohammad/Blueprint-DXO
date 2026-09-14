@@ -7,6 +7,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.min.js"></script>
     <style>
         * {
             font-family: 'Tajawal', sans-serif;
@@ -344,7 +345,7 @@
                 layerSlots[cid] = [];
                 for (let c = 0; c < totalCols; c++) {
                     const slot = document.createElement('div');
-                    slot.className = 'blueprint-col-slot flex flex-col gap-3 min-w-[270px] max-w-[290px] shrink-0';
+                    slot.className = 'blueprint-col-slot flex flex-col gap-3 min-w-[280px] max-w-[310px] shrink-0';
                     slot.setAttribute('data-col', c);
                     el.appendChild(slot);
                     layerSlots[cid].push(slot);
@@ -388,17 +389,17 @@
                     if (targetPre) {
                         const preTitle = targetPre.title || 'خطوة سابقة';
                         if (step.relation_type === 'parallel') {
-                            relationBadgeHtml = `<div class="bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center gap-1 w-full text-right" dir="rtl">
-                                <div class="flex items-center gap-1 truncate" dir="rtl">
+                            relationBadgeHtml = `<div class="bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md px-2.5 py-1 text-[11px] font-semibold flex items-center gap-1 w-full text-right" dir="rtl">
+                                <div class="flex items-center gap-1 flex-wrap" dir="rtl">
                                     <span>⚡ بالتوازي مع:</span>
-                                    <span class="font-bold truncate">${preTitle}</span>
+                                    <span class="font-bold break-words">${preTitle}</span>
                                 </div>
                             </div>`;
                         } else {
-                            relationBadgeHtml = `<div class="bg-blue-50 text-blue-700 border border-blue-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center gap-1 w-full text-right" dir="rtl">
-                                <div class="flex items-center gap-1 truncate" dir="rtl">
+                            relationBadgeHtml = `<div class="bg-blue-50 text-blue-700 border border-blue-200 rounded-md px-2.5 py-1 text-[11px] font-semibold flex items-center gap-1 w-full text-right" dir="rtl">
+                                <div class="flex items-center gap-1 flex-wrap" dir="rtl">
                                     <span>🔗 يتبع الخطوة:</span>
-                                    <span class="font-bold truncate">${preTitle}</span>
+                                    <span class="font-bold break-words">${preTitle}</span>
                                 </div>
                             </div>`;
                         }
@@ -408,7 +409,7 @@
                 let evidenceHtml = '';
                 if (step.evidence) {
                     const items = step.evidence.split(/[,،\n]+/).map(s => s.trim()).filter(Boolean);
-                    const badges = items.map(item => `<span class="bg-gray-100 border border-gray-300 rounded-full px-2.5 py-0.5 text-[11px] font-medium text-gray-700">${item}</span>`).join(' ');
+                    const badges = items.map(item => `<span class="bg-gray-100 border border-gray-300 rounded-full px-2.5 py-0.5 text-[11px] font-medium text-gray-700 break-words">${item}</span>`).join(' ');
                     evidenceHtml = `<div class="flex flex-col gap-1">
                         <span class="font-bold text-[11px] text-[#0284c7]">الأدلة المادية</span>
                         <div class="flex flex-wrap gap-1.5">${badges}</div>
@@ -422,7 +423,7 @@
                         const painBadges = painItems.map(item => `
                             <div class="bg-[#fff0f0] text-red-800 border border-red-200 rounded-lg px-2.5 py-1 text-[11px] font-medium flex items-center gap-1.5 shadow-2xs">
                                 <span class="text-red-500 text-[10px] shrink-0">⚠️</span>
-                                <span class="leading-tight">${item}</span>
+                                <span class="leading-tight break-words">${item}</span>
                             </div>
                         `).join('');
                         painHtml = `<div class="flex flex-col gap-1 mt-1">
@@ -434,7 +435,7 @@
 
                 card.innerHTML = `
                     <div class="bg-[#edf5fd] border-b border-[#d0e3f7] px-3.5 py-2 flex justify-between items-center" dir="rtl">
-                        <span class="font-bold text-xs text-[#0369a1] truncate pr-2">${step.title || 'اسم الخطوة'}</span>
+                        <span class="font-bold text-xs text-[#0369a1] break-words pr-2">${step.title || 'اسم الخطوة'}</span>
                     </div>
                     <div class="p-3.5 flex flex-col gap-2.5" dir="rtl">
                         <div class="flex justify-between items-center gap-2 flex-wrap">
@@ -444,7 +445,7 @@
                         ${relationBadgeHtml}
                         <div class="flex flex-col gap-1">
                             <span class="font-bold text-[11px] text-[#0284c7]">وصف الخطوة</span>
-                            <p class="text-xs text-gray-700 leading-relaxed">${step.description || ''}</p>
+                            <p class="text-xs text-gray-700 leading-relaxed break-words whitespace-pre-wrap">${step.description || ''}</p>
                         </div>
                         ${evidenceHtml}
                         ${painHtml}
@@ -683,99 +684,120 @@
                 const target = document.getElementById('export-canvas-wrapper');
                 renderCanvasConnections();
 
-                await new Promise(r => setTimeout(r, 100));
+                await new Promise(r => setTimeout(r, 150));
 
-                const rect = target.getBoundingClientRect();
-                const width = Math.ceil(rect.width);
-                const height = Math.ceil(rect.height);
+                const safeTitle = (currentBlueprint.title || 'Service_Blueprint').trim().replace(/[\/\\:*?"<>|]+/g, '_').replace(/\s+/g, '_');
 
-                // Clone target and remove external Tailwind class dependencies by inlining all computed styles
-                const clone = target.cloneNode(true);
-                const origElements = target.querySelectorAll('*');
-                const cloneElements = clone.querySelectorAll('*');
-
-                for (let i = 0; i < origElements.length; i++) {
-                    const origEl = origElements[i];
-                    const cloneEl = cloneElements[i];
-                    if (!cloneEl) continue;
-
-                    const cs = window.getComputedStyle(origEl);
-                    let cssText = '';
-                    for (let j = 0; j < cs.length; j++) {
-                        const prop = cs[j];
-                        cssText += `${prop}:${cs.getPropertyValue(prop)};`;
-                    }
-                    cloneEl.style.cssText = cssText;
-                }
-
-                const targetCs = window.getComputedStyle(target);
-                let targetCss = '';
-                for (let j = 0; j < targetCs.length; j++) {
-                    const prop = targetCs[j];
-                    targetCss += `${prop}:${targetCs.getPropertyValue(prop)};`;
-                }
-                clone.style.cssText = targetCss;
-
-                const wrapperHtml = new XMLSerializer().serializeToString(clone);
-
-                const svgDocument = `<?xml version="1.0" standalone="no"?>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-                        <foreignObject width="100%" height="100%">
-                            <div xmlns="http://www.w3.org/1999/xhtml" dir="rtl" style="margin:0;padding:0;box-sizing:border-box;">
-                                ${wrapperHtml}
-                            </div>
-                        </foreignObject>
-                    </svg>
-                `;
-
-                // Convert pure SVG document to base64 Data URI to prevent corrupt image decoding
-                const base64Svg = btoa(unescape(encodeURIComponent(svgDocument)));
-                const dataUrl = 'data:image/svg+xml;base64,' + base64Svg;
-
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const scale = 2; // Retina 2x high resolution
-                    canvas.width = width * scale;
-                    canvas.height = height * scale;
-                    const ctx = canvas.getContext('2d');
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.imageSmoothingQuality = 'high';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.scale(scale, scale);
-                    ctx.drawImage(img, 0, 0);
-
-                    canvas.toBlob((blob) => {
-                        if (!blob) {
-                            alert("حدث خطأ أثناء إنشاء ملف الصورة");
-                            return;
+                if (typeof htmlToImage !== 'undefined' && htmlToImage.toBlob) {
+                    const blob = await htmlToImage.toBlob(target, {
+                        quality: 1,
+                        pixelRatio: 2,
+                        backgroundColor: '#ffffff',
+                        cacheBust: true,
+                        style: {
+                            transform: 'none',
+                            margin: '0',
                         }
-                        const safeTitle = (currentBlueprint.title || 'Service_Blueprint').trim().replace(/[\/\\:*?"<>|]+/g, '_').replace(/\s+/g, '_');
-                        const blobUrl = URL.createObjectURL(blob);
-                        const downloadLink = document.createElement('a');
-                        downloadLink.download = `${safeTitle}.png`;
-                        downloadLink.href = blobUrl;
-                        document.body.appendChild(downloadLink);
-                        downloadLink.click();
-                        document.body.removeChild(downloadLink);
-                        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
-                        btn.innerHTML = originalHtml;
-                        btn.disabled = false;
-                    }, 'image/png', 1.0);
-                };
+                    });
 
-                img.onerror = (err) => {
-                    console.error("Canvas draw error:", err);
-                    alert("حدث خطأ في تصيير الصورة");
-                    btn.innerHTML = originalHtml;
-                    btn.disabled = false;
-                };
+                    if (!blob) {
+                        throw new Error("فشل إنشاء ملف الصورة");
+                    }
 
-                img.src = dataUrl;
+                    const blobUrl = URL.createObjectURL(blob);
+                    const downloadLink = document.createElement('a');
+                    downloadLink.download = `${safeTitle}.png`;
+                    downloadLink.href = blobUrl;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+                } else {
+                    // Fallback using high-fidelity inline SVG + Canvas
+                    const rect = target.getBoundingClientRect();
+                    const width = Math.ceil(rect.width);
+                    const height = Math.ceil(rect.height);
+
+                    const clone = target.cloneNode(true);
+                    const origElements = target.querySelectorAll('*');
+                    const cloneElements = clone.querySelectorAll('*');
+
+                    for (let i = 0; i < origElements.length; i++) {
+                        const origEl = origElements[i];
+                        const cloneEl = cloneElements[i];
+                        if (!cloneEl) continue;
+
+                        const cs = window.getComputedStyle(origEl);
+                        let cssText = '';
+                        for (let j = 0; j < cs.length; j++) {
+                            const prop = cs[j];
+                            cssText += `${prop}:${cs.getPropertyValue(prop)};`;
+                        }
+                        cloneEl.style.cssText = cssText;
+                    }
+
+                    const targetCs = window.getComputedStyle(target);
+                    let targetCss = '';
+                    for (let j = 0; j < targetCs.length; j++) {
+                        const prop = targetCs[j];
+                        targetCss += `${prop}:${targetCs.getPropertyValue(prop)};`;
+                    }
+                    clone.style.cssText = targetCss;
+
+                    const wrapperHtml = new XMLSerializer().serializeToString(clone);
+
+                    const svgDocument = `<?xml version="1.0" standalone="no"?>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+                            <foreignObject width="100%" height="100%">
+                                <div xmlns="http://www.w3.org/1999/xhtml" dir="rtl" style="margin:0;padding:0;box-sizing:border-box;">
+                                    ${wrapperHtml}
+                                </div>
+                            </foreignObject>
+                        </svg>
+                    `;
+
+                    const base64Svg = btoa(unescape(encodeURIComponent(svgDocument)));
+                    const dataUrl = 'data:image/svg+xml;base64,' + base64Svg;
+
+                    const img = new Image();
+                    await new Promise((resolve, reject) => {
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            const scale = 2;
+                            canvas.width = width * scale;
+                            canvas.height = height * scale;
+                            const ctx = canvas.getContext('2d');
+                            ctx.imageSmoothingEnabled = true;
+                            ctx.imageSmoothingQuality = 'high';
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            ctx.scale(scale, scale);
+                            ctx.drawImage(img, 0, 0);
+
+                            canvas.toBlob((blob) => {
+                                if (!blob) {
+                                    reject(new Error("حدث خطأ أثناء إنشاء ملف الصورة"));
+                                    return;
+                                }
+                                const blobUrl = URL.createObjectURL(blob);
+                                const downloadLink = document.createElement('a');
+                                downloadLink.download = `${safeTitle}.png`;
+                                downloadLink.href = blobUrl;
+                                document.body.appendChild(downloadLink);
+                                downloadLink.click();
+                                document.body.removeChild(downloadLink);
+                                setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+                                resolve();
+                            }, 'image/png', 1.0);
+                        };
+                        img.onerror = () => reject(new Error("حدث خطأ في تصيير الصورة"));
+                        img.src = dataUrl;
+                    });
+                }
             } catch (err) {
                 console.error("Save image error:", err);
                 alert("حدث خطأ أثناء حفظ الصورة: " + err.message);
+            } finally {
                 btn.innerHTML = originalHtml;
                 btn.disabled = false;
             }
