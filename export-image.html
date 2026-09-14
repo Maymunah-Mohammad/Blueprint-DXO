@@ -17,9 +17,8 @@
             margin: 0;
             padding: 0;
             width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            background-color: #f8fafc;
+            min-height: 100vh;
+            background-color: #0f172a;
             color: #0f172a;
         }
 
@@ -98,18 +97,17 @@
         .arabic-text { font-size: 13px; font-weight: 800; }
         .english-text { font-size: 10px; font-weight: 700; opacity: 0.8; }
 
-        /* Blueprint Frame Container */
-        .blueprint-frame {
-            flex: 1;
-            width: 100%;
-            min-width: 0;
-            min-height: 0;
-            overflow: auto !important;
+        /* Blueprint Canvas Wrapper */
+        #export-canvas-wrapper {
             background-color: #ffffff;
-            border: 1px solid #e2e8f0;
+            padding: 24px;
             border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            width: max-content;
+            min-width: 1100px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
         .blueprint-container {
@@ -117,129 +115,70 @@
             flex-direction: column;
             gap: 12px;
             min-width: max-content;
-            transform-origin: top right;
+            position: relative;
         }
 
-        /* Workspace container filling full screen */
-        .interactive-workspace {
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            background-color: #f8fafc;
+        /* Pure Crisp Native Typography for Arabic Text */
+        .card-header-title {
+            font-size: 12px;
+            font-weight: 800;
+            color: #0369a1;
+            line-height: 1.4;
+            display: block;
+            width: 100%;
+            text-align: right;
         }
 
-        @page {
-            size: A4 landscape;
-            margin: 5mm;
-        }
-
-        @media print {
-            header, .no-print, button {
-                display: none !important;
-            }
-            html, body {
-                width: 100% !important;
-                height: 100% !important;
-                max-height: 100vh !important;
-                overflow: hidden !important;
-                background: white !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-            .interactive-workspace {
-                width: 100% !important;
-                height: 100% !important;
-                max-height: 100vh !important;
-                overflow: hidden !important;
-                background: white !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: flex-start !important;
-                align-items: stretch !important;
-            }
-            #journey-title-container {
-                margin: 0 0 6px 0 !important;
-                padding: 0 4px !important;
-                flex-shrink: 0 !important;
-                display: flex !important;
-            }
-            .blueprint-frame {
-                box-shadow: none !important;
-                border: 1px solid #cbd5e1 !important;
-                border-radius: 8px !important;
-                padding: 8px !important;
-                overflow: hidden !important;
-                width: 100% !important;
-                height: calc(100vh - 55px) !important;
-                max-height: calc(100vh - 55px) !important;
-                flex: 1 !important;
-                margin: 0 !important;
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-            }
-            .blueprint-container {
-                overflow: visible !important;
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-            }
-            *, .section-box, .line-container, .blueprint-frame, .blueprint-container {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-                page-break-before: avoid !important;
-                page-break-after: avoid !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
+        .step-desc-text {
+            font-size: 12px;
+            color: #374151;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            text-align: right;
+            word-break: break-word;
         }
     </style>
 </head>
-<body>
-    <main class="interactive-workspace" dir="rtl">
-        <!-- Blueprint Title Header & Actions -->
-        <div id="journey-title-container" class="flex justify-between items-center px-1 pb-3 shrink-0" dir="rtl">
-            <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-gray-500">اسم الرحلة:</span>
-                <h1 id="journey-title-display" class="text-base font-extrabold text-gray-900 truncate">جاري التحميل...</h1>
-            </div>
-            <div class="flex items-center gap-3 no-print">
-                <div class="text-xs text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5">
-                    <span>💡</span>
-                    <span>اختر من خيارات الطباعة: <b>حفظ بتنسيق صورة (Save as Image)</b> أو <b>حفظ بتنسيق PDF</b></span>
-                </div>
-                <button onclick="fitAndTriggerPrint()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                        <rect x="6" y="14" width="12" height="8"></rect>
-                    </svg>
-                    <span>حفظ المخطط / طباعة</span>
-                </button>
-            </div>
+<body class="p-6 flex flex-col items-center min-h-screen">
+    <!-- Top Action Bar -->
+    <div class="w-full max-w-6xl flex justify-between items-center mb-6 text-white px-2" dir="rtl">
+        <div class="flex items-center gap-3">
+            <span class="text-xs text-slate-400 font-bold">تصدير المخطط كصورة:</span>
+            <h1 id="journey-title-display" class="text-lg font-black text-white">جاري التحميل...</h1>
         </div>
+        <div class="flex items-center gap-3">
+            <button id="download-btn" onclick="saveAsImagePNG()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm px-6 py-2.5 rounded-xl shadow-lg hover:shadow-indigo-500/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>حفظ الصورة (PNG)</span>
+            </button>
+            <button onclick="window.close()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm px-4 py-2.5 rounded-xl border border-slate-700 transition-all cursor-pointer">
+                إغلاق
+            </button>
+        </div>
+    </div>
 
-        <!-- Main Workspace holding the exact Blueprint Frame -->
-        <div class="blueprint-frame relative" id="blueprint-frame">
-            <!-- Loading Overlay inside Blueprint Frame -->
-            <div id="blueprint-loading-overlay" class="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-40 flex flex-col items-center justify-center gap-3 transition-opacity duration-300 hidden" dir="rtl">
-                <div class="flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-2xl shadow-xl border border-gray-800 animate-in fade-in zoom-in-95 duration-200">
-                    <svg class="animate-spin h-5 w-5 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span id="blueprint-loading-text" class="text-xs font-bold tracking-wide">جاري المعالجة والتحميل...</span>
+    <!-- Scrollable Preview Area with the Full Blueprint Tree -->
+    <div class="w-full overflow-auto flex justify-center pb-12">
+        <div id="export-canvas-wrapper" dir="rtl">
+            <!-- Header on Image -->
+            <div class="flex justify-between items-center pb-3 border-b border-gray-100" dir="rtl">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-gray-400">مخطط رحلة الخدمة (Service Blueprint):</span>
+                    <h2 id="blueprint-image-title" class="text-base font-extrabold text-gray-800"></h2>
+                </div>
+                <div class="text-xs font-bold text-gray-400">
+                    DXO Service Design
                 </div>
             </div>
 
-            <!-- Blueprint Canvas Container with SVG overlay inside to scale together perfectly -->
-            <div class="blueprint-container relative" id="blueprint-container">
-                <!-- Dynamic SVG Connections Overlay for Pre-step Arrows (Scales in 100% sync with container) -->
+            <!-- The Main Blueprint Flow with SVG Arrows -->
+            <div class="blueprint-container" id="blueprint-container" dir="rtl">
+                <!-- SVG Arrows Overlay -->
                 <svg id="blueprint-connections-svg" class="absolute inset-0 w-full h-full pointer-events-none z-10" style="overflow: visible;">
                     <defs>
                         <marker id="arrow-solid" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
@@ -316,7 +255,7 @@
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 
     <script>
         let currentBlueprint = {
@@ -352,111 +291,6 @@
             if (layerName.includes('Support Processes') || layerName.includes('العمليات والدعم')) return 'cards-sp';
             return 'cards-ca';
         }
-
-        async function initExportImagePage() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const bpId = urlParams.get('id');
-
-            let loaded = false;
-
-            // 1. Load from Server if ID is available
-            if (bpId) {
-                try {
-                    const res = await fetch(`/api/blueprints/${encodeURIComponent(bpId)}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data && data.steps) {
-                            currentBlueprint = data;
-                            loaded = true;
-                        }
-                    }
-                } catch(e) {
-                    console.error("Fetch server error:", e);
-                }
-            }
-
-            // 2. Fallback to LocalStorage
-            if (!loaded) {
-                const keys = ['current_blueprint_backup', 'current_blueprint', 'dxo_service_blueprint'];
-                for (const k of keys) {
-                    const raw = localStorage.getItem(k);
-                    if (raw) {
-                        try {
-                            const parsed = JSON.parse(raw);
-                            if (parsed && parsed.steps && parsed.steps.length > 0) {
-                                currentBlueprint = parsed;
-                                loaded = true;
-                                break;
-                            }
-                        } catch(e){}
-                    }
-                }
-            }
-
-            // Update Journey Title Header Display
-            const titleEl = document.getElementById('journey-title-display');
-            if (titleEl) {
-                titleEl.textContent = currentBlueprint.title || 'رحلة بدون عنوان';
-            }
-            document.title = `${currentBlueprint.title || 'المخطط'} - تصدير كصورة`;
-
-            // Render Blueprint Cards & Connections
-            renderBlueprint();
-
-            // Auto fit and trigger print dialog
-            const onReady = () => {
-                setTimeout(() => {
-                    fitBlueprintToOnePage();
-                    setTimeout(() => {
-                        window.print();
-                    }, 250);
-                }, 100);
-            };
-
-            if (document.fonts && document.fonts.ready) {
-                document.fonts.ready.then(onReady);
-            } else {
-                setTimeout(onReady, 200);
-            }
-        }
-
-        function fitBlueprintToOnePage() {
-            const container = document.getElementById('blueprint-container');
-            const frame = document.getElementById('blueprint-frame');
-            if (!container || !frame) return;
-
-            container.style.transform = 'none';
-            container.style.width = 'max-content';
-
-            renderCanvasConnections();
-
-            const nativeWidth = container.scrollWidth || container.offsetWidth;
-            const nativeHeight = container.scrollHeight || container.offsetHeight;
-
-            const targetWidth = 1045;
-            const targetHeight = 670;
-
-            const scaleX = targetWidth / nativeWidth;
-            const scaleY = targetHeight / nativeHeight;
-
-            const fitScale = Math.min(1.0, scaleX, scaleY);
-
-            if (fitScale < 1.0) {
-                container.style.transformOrigin = 'top right';
-                container.style.transform = `scale(${fitScale})`;
-                container.style.width = `${Math.ceil(100 / fitScale)}%`;
-            } else {
-                container.style.transform = 'none';
-                container.style.width = '100%';
-            }
-        }
-
-        window.fitAndTriggerPrint = function() {
-            fitBlueprintToOnePage();
-            setTimeout(() => {
-                window.print();
-            }, 150);
-        };
 
         function computeStepColumns(steps) {
             if (!steps || steps.length === 0) return { colMap: new Map(), totalCols: 1 };
@@ -521,17 +355,7 @@
             });
 
             const steps = currentBlueprint.steps || [];
-            if (steps.length === 0) {
-                containers.forEach(cid => {
-                    const el = document.getElementById(cid);
-                    if (el) {
-                        el.innerHTML = `<div class="empty-placeholder text-gray-300 text-xs font-semibold py-3 px-4 border border-dashed border-gray-200 rounded-lg whitespace-nowrap opacity-60">لا يوجد خطوات في هذه الطبقة بعد</div>`;
-                    }
-                });
-                const svgGroup = document.getElementById('svg-connections-group');
-                if (svgGroup) svgGroup.innerHTML = '';
-                return;
-            }
+            if (steps.length === 0) return;
 
             const { colMap, totalCols } = computeStepColumns(steps);
 
@@ -556,7 +380,7 @@
                 if (!slot) return;
 
                 const card = document.createElement('div');
-                card.className = "bg-white border border-[#d2d6db] rounded-2xl shadow-sm flex flex-col w-full relative z-20 text-right text-xs shrink-0 transition-all hover:shadow-md overflow-hidden group";
+                card.className = "bg-white border border-[#d2d6db] rounded-2xl shadow-sm flex flex-col w-full relative z-20 text-right text-xs shrink-0 overflow-hidden";
                 card.setAttribute('data-step-id', step.id);
                 card.setAttribute('dir', 'rtl');
 
@@ -587,17 +411,13 @@
                         const preTitle = targetPre.title || 'خطوة سابقة';
                         if (step.relation_type === 'parallel') {
                             relationBadgeHtml = `<div class="bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center gap-1 w-full text-right" dir="rtl">
-                                <div class="flex items-center gap-1 truncate" dir="rtl">
-                                    <span>⚡ بالتوازي مع:</span>
-                                    <span class="font-bold truncate">${preTitle}</span>
-                                </div>
+                                <span>⚡ بالتوازي مع:</span>
+                                <span class="font-bold truncate">${preTitle}</span>
                             </div>`;
                         } else {
                             relationBadgeHtml = `<div class="bg-blue-50 text-blue-700 border border-blue-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center gap-1 w-full text-right" dir="rtl">
-                                <div class="flex items-center gap-1 truncate" dir="rtl">
-                                    <span>🔗 يتبع الخطوة:</span>
-                                    <span class="font-bold truncate">${preTitle}</span>
-                                </div>
+                                <span>🔗 يتبع الخطوة:</span>
+                                <span class="font-bold truncate">${preTitle}</span>
                             </div>`;
                         }
                     }
@@ -631,23 +451,19 @@
                 }
 
                 card.innerHTML = `
-                    <div class="bg-[#edf5fd] border-b border-[#d0e3f7] px-3.5 py-2 flex justify-between items-center relative" dir="rtl">
-                        <span class="font-bold text-xs text-[#0369a1] truncate pr-2">${step.title || 'اسم الخطوة'}</span>
+                    <div class="bg-[#edf5fd] border-b border-[#d0e3f7] px-3.5 py-2 flex justify-between items-center" dir="rtl">
+                        <span class="card-header-title">${step.title || 'اسم الخطوة'}</span>
                     </div>
-
                     <div class="p-3.5 flex flex-col gap-2.5" dir="rtl">
                         <div class="flex justify-between items-center gap-2 flex-wrap">
                             ${charHtml}
                             ${durationHtml}
                         </div>
-
                         ${relationBadgeHtml}
-
                         <div class="flex flex-col gap-1">
                             <span class="font-bold text-[11px] text-[#0284c7]">وصف الخطوة</span>
-                            <p class="text-xs text-gray-700 leading-relaxed">${step.description || 'اسم الرحلة'}</p>
+                            <p class="step-desc-text">${step.description || ''}</p>
                         </div>
-
                         ${evidenceHtml}
                         ${painHtml}
                     </div>
@@ -671,20 +487,13 @@
             }, 60);
         }
 
-        window.renderCanvasConnections = function() {
+        function renderCanvasConnections() {
             const svgGroup = document.getElementById('svg-connections-group');
             const container = document.getElementById('blueprint-container');
             if (!svgGroup || !container) return;
 
             svgGroup.innerHTML = '';
             const containerRect = container.getBoundingClientRect();
-
-            const currentTransform = container.style.transform;
-            let currentScale = 1.0;
-            const matchScale = currentTransform.match(/scale\(([^)]+)\)/);
-            if (matchScale && matchScale[1]) {
-                currentScale = parseFloat(matchScale[1]) || 1.0;
-            }
 
             const connections = [];
             const outgoingMap = {};
@@ -708,10 +517,8 @@
 
             connections.forEach(item => {
                 const { step, preCard, currCard } = item;
-
                 const outGroup = outgoingMap[step.pre_step_id] || [];
                 const inGroup = incomingMap[step.id] || [];
-
                 const outIdx = outGroup.indexOf(item);
                 const inIdx = inGroup.indexOf(item);
 
@@ -722,22 +529,22 @@
                 const r2 = currCard.getBoundingClientRect();
 
                 const pre = {
-                    left: (r1.left - containerRect.left) / currentScale,
-                    right: (r1.right - containerRect.left) / currentScale,
-                    top: (r1.top - containerRect.top) / currentScale,
-                    bottom: (r1.bottom - containerRect.top) / currentScale,
-                    centerX: ((r1.left + r1.right) / 2 - containerRect.left) / currentScale,
-                    centerY: ((r1.top + r1.bottom) / 2 - containerRect.top) / currentScale,
+                    left: r1.left - containerRect.left,
+                    right: r1.right - containerRect.left,
+                    top: r1.top - containerRect.top,
+                    bottom: r1.bottom - containerRect.top,
+                    centerX: (r1.left + r1.right) / 2 - containerRect.left,
+                    centerY: (r1.top + r1.bottom) / 2 - containerRect.top,
                     layer: step.layer
                 };
 
                 const curr = {
-                    left: (r2.left - containerRect.left) / currentScale,
-                    right: (r2.right - containerRect.left) / currentScale,
-                    top: (r2.top - containerRect.top) / currentScale,
-                    bottom: (r2.bottom - containerRect.top) / currentScale,
-                    centerX: ((r2.left + r2.right) / 2 - containerRect.left) / currentScale,
-                    centerY: ((r2.top + r2.bottom) / 2 - containerRect.top) / currentScale,
+                    left: r2.left - containerRect.left,
+                    right: r2.right - containerRect.left,
+                    top: r2.top - containerRect.top,
+                    bottom: r2.bottom - containerRect.top,
+                    centerX: (r2.left + r2.right) / 2 - containerRect.left,
+                    centerY: (r2.top + r2.bottom) / 2 - containerRect.top,
                     layer: step.layer
                 };
 
@@ -763,7 +570,6 @@
                             const p2X = endX - stubIn;
                             const p2Y = endY;
                             const midX = (p1X + p2X) / 2;
-
                             pathD = `M ${startX} ${startY} L ${p1X} ${p1Y} C ${midX} ${p1Y}, ${midX} ${p2Y}, ${p2X} ${p2Y} L ${endX} ${endY}`;
                         }
                     } else if (pre.left > curr.right - 10) {
@@ -782,15 +588,14 @@
                             const p2X = endX + stubIn;
                             const p2Y = endY;
                             const midX = (p1X + p2X) / 2;
-
                             pathD = `M ${startX} ${startY} L ${p1X} ${p1Y} C ${midX} ${p1Y}, ${midX} ${p2Y}, ${p2X} ${p2Y} L ${endX} ${endY}`;
                         }
                     } else {
                         const goingDown = curr.centerY >= pre.centerY;
-                        startX = pre.centerX + outOffset;
-                        startY = goingDown ? pre.bottom : pre.top;
-                        endX = curr.centerX + inOffset;
-                        endY = goingDown ? curr.top : curr.bottom;
+                        const startX = pre.centerX + outOffset;
+                        const startY = goingDown ? pre.bottom : pre.top;
+                        const endX = curr.centerX + inOffset;
+                        const endY = goingDown ? curr.top : curr.bottom;
 
                         const dir = goingDown ? 1 : -1;
                         const stubOut = 14 * dir;
@@ -798,18 +603,16 @@
                         const p1Y = startY + stubOut;
                         const p2Y = endY - stubIn;
                         const midY = (p1Y + p2Y) / 2;
-
                         pathD = `M ${startX} ${startY} L ${startX} ${p1Y} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${p2Y} L ${endX} ${endY}`;
                     }
                 } else {
                     const goingDown = curr.centerY >= pre.centerY;
-                    startX = pre.centerX + outOffset;
-                    startY = goingDown ? pre.bottom : pre.top;
-                    endX = curr.centerX + inOffset;
-                    endY = goingDown ? curr.top : curr.bottom;
+                    const startX = pre.centerX + outOffset;
+                    const startY = goingDown ? pre.bottom : pre.top;
+                    const endX = curr.centerX + inOffset;
+                    const endY = goingDown ? curr.top : curr.bottom;
 
                     const dir = goingDown ? 1 : -1;
-
                     if (Math.abs(startX - endX) < 2) {
                         pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
                     } else {
@@ -837,17 +640,146 @@
 
                 svgGroup.appendChild(pathEl);
             });
-        };
+        }
 
-        window.addEventListener('resize', () => {
-            fitBlueprintToOnePage();
-        });
+        async function initPage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const bpId = urlParams.get('id');
 
-        window.addEventListener('beforeprint', () => {
-            fitBlueprintToOnePage();
-        });
+            let loaded = false;
+            if (bpId) {
+                try {
+                    const res = await fetch(`/api/blueprints/${encodeURIComponent(bpId)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.steps) {
+                            currentBlueprint = data;
+                            loaded = true;
+                        }
+                    }
+                } catch (e) {}
+            }
 
-        document.addEventListener('DOMContentLoaded', initExportImagePage);
+            if (!loaded) {
+                const keys = ['current_blueprint_backup', 'current_blueprint', 'dxo_service_blueprint'];
+                for (const k of keys) {
+                    const raw = localStorage.getItem(k);
+                    if (raw) {
+                        try {
+                            const parsed = JSON.parse(raw);
+                            if (parsed && parsed.steps && parsed.steps.length > 0) {
+                                currentBlueprint = parsed;
+                                loaded = true;
+                                break;
+                            }
+                        } catch(e){}
+                    }
+                }
+            }
+
+            const title = currentBlueprint.title || 'رحلة بدون عنوان';
+            document.getElementById('journey-title-display').textContent = title;
+            document.getElementById('blueprint-image-title').textContent = title;
+            document.title = `${title} - تصدير كصورة`;
+
+            renderBlueprint();
+
+            if (urlParams.get('auto') === '1') {
+                setTimeout(() => {
+                    saveAsImagePNG();
+                }, 400);
+            }
+        }
+
+        async function saveAsImagePNG() {
+            const btn = document.getElementById('download-btn');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<span>جاري التحميل...</span>';
+            btn.disabled = true;
+
+            try {
+                const target = document.getElementById('export-canvas-wrapper');
+                renderCanvasConnections();
+
+                // Vector SVG Image rendering for crystal clear font shaping & zero artifact distortion
+                const serializer = new XMLSerializer();
+                const svgString = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="${target.offsetWidth}" height="${target.offsetHeight}">
+                        <foreignObject width="100%" height="100%">
+                            <div xmlns="http://www.w3.org/1999/xhtml" dir="rtl" style="font-family: 'Tajawal', sans-serif;">
+                                ${target.outerHTML}
+                            </div>
+                        </foreignObject>
+                    </svg>
+                `;
+
+                const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+                const DOMURL = window.URL || window.webkitURL || window;
+                const url = DOMURL.createObjectURL(svgBlob);
+
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+
+                await new Promise((resolve, reject) => {
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const scale = 2; // Retina 2x
+                        canvas.width = target.offsetWidth * scale;
+                        canvas.height = target.offsetHeight * scale;
+                        const ctx = canvas.getContext('2d');
+                        ctx.imageSmoothingEnabled = true;
+                        ctx.imageSmoothingQuality = 'high';
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.scale(scale, scale);
+                        ctx.drawImage(img, 0, 0);
+
+                        try {
+                            const pngUri = canvas.toDataURL('image/png');
+                            const safeTitle = (currentBlueprint.title || 'Service_Blueprint').trim().replace(/[\/\\:*?"<>|]+/g, '_').replace(/\s+/g, '_');
+                            const downloadLink = document.createElement('a');
+                            downloadLink.download = `${safeTitle}.png`;
+                            downloadLink.href = pngUri;
+                            document.body.appendChild(downloadLink);
+                            downloadLink.click();
+                            document.body.removeChild(downloadLink);
+                            DOMURL.revokeObjectURL(url);
+                            resolve();
+                        } catch (e) {
+                            // Direct SVG download if canvas tainting occurs
+                            const downloadLink = document.createElement('a');
+                            downloadLink.download = `${(currentBlueprint.title || 'Service_Blueprint').trim().replace(/[\/\\:*?"<>|]+/g, '_')}.svg`;
+                            downloadLink.href = url;
+                            document.body.appendChild(downloadLink);
+                            downloadLink.click();
+                            document.body.removeChild(downloadLink);
+                            resolve();
+                        }
+                    };
+                    img.onerror = () => {
+                        // Direct download of SVG image
+                        const safeTitle = (currentBlueprint.title || 'Service_Blueprint').trim().replace(/[\/\\:*?"<>|]+/g, '_').replace(/\s+/g, '_');
+                        const downloadLink = document.createElement('a');
+                        downloadLink.download = `${safeTitle}.svg`;
+                        downloadLink.href = url;
+                        document.body.appendChild(downloadLink);
+                        downloadLink.click();
+                        document.body.removeChild(downloadLink);
+                        resolve();
+                    };
+                    img.src = url;
+                });
+            } catch (err) {
+                console.error("Save image error:", err);
+                alert("حدث خطأ أثناء حفظ الصورة: " + err.message);
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        }
+
+        window.addEventListener('resize', renderCanvasConnections);
+        document.addEventListener('DOMContentLoaded', initPage);
     </script>
 </body>
 </html>
