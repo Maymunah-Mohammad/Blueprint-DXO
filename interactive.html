@@ -130,13 +130,84 @@
             background-color: #f8fafc;
         }
 
+        /* Interactive Glowing Effects for Card Selection */
+        .step-card {
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .step-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Active / Selected Card: Indigo Ring */
+        .step-card.card-active {
+            outline: 3px solid #6366f1 !important;
+            outline-offset: 2px !important;
+            box-shadow: 0 0 25px rgba(99, 102, 241, 0.65), 0 10px 25px -5px rgba(0, 0, 0, 0.15) !important;
+            transform: scale(1.025);
+            z-index: 50 !important;
+        }
+
+        /* Parent Step: Blue Glow */
+        .step-card.glow-parent {
+            outline: 3.5px solid #2563eb !important;
+            outline-offset: 2px !important;
+            box-shadow: 0 0 30px rgba(37, 99, 235, 0.8), 0 10px 25px -5px rgba(37, 99, 235, 0.3) !important;
+            transform: scale(1.025);
+            z-index: 45 !important;
+            animation: pulse-glow-blue 2s infinite ease-in-out;
+        }
+
+        /* Next Steps: Green Glow */
+        .step-card.glow-next {
+            outline: 3.5px solid #10b981 !important;
+            outline-offset: 2px !important;
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.8), 0 10px 25px -5px rgba(16, 185, 129, 0.3) !important;
+            transform: scale(1.025);
+            z-index: 45 !important;
+            animation: pulse-glow-green 2s infinite ease-in-out;
+        }
+
+        /* Parallel Steps: Grey Glow */
+        .step-card.glow-parallel {
+            outline: 3.5px solid #64748b !important;
+            outline-offset: 2px !important;
+            box-shadow: 0 0 30px rgba(100, 116, 139, 0.85), 0 10px 25px -5px rgba(100, 116, 139, 0.3) !important;
+            transform: scale(1.025);
+            z-index: 45 !important;
+            animation: pulse-glow-grey 2s infinite ease-in-out;
+        }
+
+        /* Unselected Dimming Effect when a card is selected */
+        .has-card-selection .step-card:not(.card-active):not(.glow-parent):not(.glow-next):not(.glow-parallel) {
+            opacity: 0.35 !important;
+            filter: grayscale(35%) !important;
+            transform: scale(0.98);
+        }
+
+        @keyframes pulse-glow-blue {
+            0%, 100% { box-shadow: 0 0 22px rgba(37, 99, 235, 0.75); }
+            50% { box-shadow: 0 0 35px rgba(37, 99, 235, 0.95); }
+        }
+
+        @keyframes pulse-glow-green {
+            0%, 100% { box-shadow: 0 0 22px rgba(16, 185, 129, 0.75); }
+            50% { box-shadow: 0 0 35px rgba(16, 185, 129, 0.95); }
+        }
+
+        @keyframes pulse-glow-grey {
+            0%, 100% { box-shadow: 0 0 22px rgba(100, 116, 139, 0.75); }
+            50% { box-shadow: 0 0 35px rgba(100, 116, 139, 0.95); }
+        }
+
         @page {
             size: A4 landscape;
             margin: 4mm;
         }
 
         @media print {
-            header, .no-print, button {
+            header, .no-print, button, .interactive-legend {
                 display: none !important;
             }
             html, body {
@@ -212,11 +283,34 @@
     </style>
 </head>
 <body>
-    <main class="interactive-workspace" dir="rtl">
-        <!-- Blueprint Title Header -->
-        <div id="journey-title-container" class="flex items-center gap-2 px-1 pb-3 shrink-0" dir="rtl">
-            <span class="text-xs font-bold text-gray-500">اسم الرحلة:</span>
-            <h1 id="journey-title-display" class="text-base font-extrabold text-gray-900 truncate">جاري التحميل...</h1>
+    <main class="interactive-workspace" dir="rtl" onclick="if(event.target === this || event.target.id === 'blueprint-frame' || event.target.id === 'blueprint-container') clearStepSelection();">
+        <!-- Blueprint Title Header & Interactive Glowing Legend -->
+        <div id="journey-title-container" class="flex items-center justify-between gap-4 px-1 pb-3 shrink-0 flex-wrap" dir="rtl">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-gray-500">اسم الرحلة:</span>
+                <h1 id="journey-title-display" class="text-base font-extrabold text-gray-900 truncate">جاري التحميل...</h1>
+            </div>
+
+            <!-- Glowing Interactive Legend -->
+            <div class="interactive-legend flex items-center gap-2.5 bg-white border border-gray-200 px-3 py-1.5 rounded-xl shadow-2xs text-xs font-bold flex-wrap">
+                <span class="text-gray-500 text-[11px] font-semibold flex items-center gap-1">
+                    <span>💡</span>
+                    <span>انقر على أي خطوة لإظهار مسارها:</span>
+                </span>
+                <div class="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-lg border border-blue-200">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-[0_0_8px_#2563eb]"></span>
+                    <span>السابقة (الأم): إضاءة زرقاء</span>
+                </div>
+                <div class="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-lg border border-emerald-200">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
+                    <span>التالية: إضاءة خضراء</span>
+                </div>
+                <div class="flex items-center gap-1.5 bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-lg border border-slate-300">
+                    <span class="w-2.5 h-2.5 rounded-full bg-slate-500 shadow-[0_0_8px_#64748b]"></span>
+                    <span>المتوازية: إضاءة رمادية</span>
+                </div>
+                <button onclick="clearStepSelection()" class="text-gray-400 hover:text-gray-700 text-xs px-2 py-0.5 rounded hover:bg-gray-100 transition-colors" title="إلغاء التحديد">إلغاء التحديد ✕</button>
+            </div>
         </div>
 
         <!-- Main Workspace holding the exact Blueprint Frame -->
@@ -236,11 +330,26 @@
                 <!-- Dynamic SVG Connections Overlay for Pre-step Arrows -->
                 <svg id="blueprint-connections-svg" class="absolute inset-0 w-full h-full pointer-events-none z-10" style="overflow: visible;">
                     <defs>
+                        <!-- Standard Markers -->
                         <marker id="arrow-solid" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
                             <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0284c7" />
                         </marker>
                         <marker id="arrow-dashed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
                             <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2563eb" />
+                        </marker>
+
+                        <!-- Glowing State Markers -->
+                        <marker id="arrow-solid-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2563eb" />
+                        </marker>
+                        <marker id="arrow-solid-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#10b981" />
+                        </marker>
+                        <marker id="arrow-solid-grey" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#64748b" />
+                        </marker>
+                        <marker id="arrow-dashed-grey" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#64748b" />
                         </marker>
                     </defs>
                     <g id="svg-connections-group"></g>
@@ -517,6 +626,116 @@
             return { colMap, totalCols: maxCol + 1 };
         }
 
+        // Interactive Step Glow Selection State
+        let activeSelectedStepId = null;
+
+        window.handleStepCardClick = function(stepId, event) {
+            if (event) event.stopPropagation();
+
+            if (activeSelectedStepId === stepId) {
+                clearStepSelection();
+                return;
+            }
+
+            activeSelectedStepId = stepId;
+            applyStepGlowEffects(stepId);
+        };
+
+        window.clearStepSelection = function() {
+            activeSelectedStepId = null;
+            document.querySelectorAll('.step-card').forEach(card => {
+                card.classList.remove('card-active', 'glow-parent', 'glow-next', 'glow-parallel');
+                const badge = card.querySelector('.interactive-status-badge');
+                if (badge) badge.remove();
+            });
+            const container = document.getElementById('blueprint-container');
+            if (container) container.classList.remove('has-card-selection');
+
+            if (window.renderCanvasConnections) {
+                window.renderCanvasConnections();
+            }
+        };
+
+        window.applyStepGlowEffects = function(stepId) {
+            const steps = currentBlueprint.steps || [];
+            const clickedStep = steps.find(s => s.id === stepId);
+            if (!clickedStep) return;
+
+            const container = document.getElementById('blueprint-container');
+            if (container) container.classList.add('has-card-selection');
+
+            // 1. Parent Step ID (Blue Glow)
+            const parentStepId = clickedStep.pre_step_id || null;
+
+            // 2. Next Step IDs (Green Glow)
+            const nextStepIds = new Set(
+                steps.filter(s => s.pre_step_id === stepId && s.relation_type !== 'parallel').map(s => s.id)
+            );
+
+            // 3. Parallel Step IDs (Grey Glow)
+            const parallelStepIds = new Set();
+            steps.forEach(s => {
+                if (s.id === stepId) return;
+                // Direct parallel child of clicked step
+                if (s.pre_step_id === stepId && s.relation_type === 'parallel') {
+                    parallelStepIds.add(s.id);
+                }
+                // Sibling parallel step (shares the same parent and both are parallel)
+                if (clickedStep.relation_type === 'parallel' && clickedStep.pre_step_id && s.pre_step_id === clickedStep.pre_step_id && s.relation_type === 'parallel') {
+                    parallelStepIds.add(s.id);
+                }
+            });
+
+            // Update card DOM elements
+            document.querySelectorAll('.step-card').forEach(card => {
+                const id = card.getAttribute('data-step-id');
+                card.classList.remove('card-active', 'glow-parent', 'glow-next', 'glow-parallel');
+                const oldBadge = card.querySelector('.interactive-status-badge');
+                if (oldBadge) oldBadge.remove();
+
+                const headerBanner = card.querySelector('.card-header-banner');
+
+                if (id === stepId) {
+                    card.classList.add('card-active');
+                    if (headerBanner) {
+                        const badge = document.createElement('span');
+                        badge.className = 'interactive-status-badge bg-indigo-600 text-white font-bold text-[10px] px-2 py-0.5 rounded-full shrink-0 shadow-sm animate-pulse';
+                        badge.textContent = 'الخطوة المحددة';
+                        headerBanner.appendChild(badge);
+                    }
+                } else if (id === parentStepId) {
+                    card.classList.add('glow-parent');
+                    if (headerBanner) {
+                        const badge = document.createElement('span');
+                        badge.className = 'interactive-status-badge bg-blue-600 text-white font-bold text-[10px] px-2 py-0.5 rounded-full shrink-0 shadow-sm';
+                        badge.textContent = 'الخطوة السابقة (الأم)';
+                        headerBanner.appendChild(badge);
+                    }
+                } else if (nextStepIds.has(id)) {
+                    card.classList.add('glow-next');
+                    if (headerBanner) {
+                        const badge = document.createElement('span');
+                        badge.className = 'interactive-status-badge bg-emerald-600 text-white font-bold text-[10px] px-2 py-0.5 rounded-full shrink-0 shadow-sm';
+                        badge.textContent = 'الخطوة التالية';
+                        headerBanner.appendChild(badge);
+                    }
+                } else if (parallelStepIds.has(id)) {
+                    card.classList.add('glow-parallel');
+                    if (headerBanner) {
+                        const badge = document.createElement('span');
+                        badge.className = 'interactive-status-badge bg-slate-600 text-white font-bold text-[10px] px-2 py-0.5 rounded-full shrink-0 shadow-sm';
+                        badge.textContent = 'خطوة متوازية';
+                        headerBanner.appendChild(badge);
+                    }
+                }
+            });
+
+            // Re-render SVG connection arrows with glowing highlights
+            if (window.renderCanvasConnections) {
+                window.renderCanvasConnections(stepId, parentStepId, nextStepIds, parallelStepIds);
+            }
+        };
+
         function renderBlueprint() {
             containers.forEach(cid => {
                 const el = document.getElementById(cid);
@@ -561,9 +780,10 @@
                 if (!slot) return;
 
                 const card = document.createElement('div');
-                card.className = "bg-white border border-[#d2d6db] rounded-2xl shadow-sm flex flex-col w-full relative z-20 text-right text-xs shrink-0 transition-all hover:shadow-md overflow-hidden group";
+                card.className = "step-card bg-white border border-[#d2d6db] rounded-2xl shadow-sm flex flex-col w-full relative z-20 text-right text-xs shrink-0 transition-all hover:shadow-md overflow-hidden group select-none";
                 card.setAttribute('data-step-id', step.id);
                 card.setAttribute('dir', 'rtl');
+                card.setAttribute('onclick', `window.handleStepCardClick('${step.id}', event)`);
 
                 let charHtml = '';
                 if (step.character) {
@@ -637,8 +857,8 @@
 
                 card.innerHTML = `
                     <!-- Card Top Header Banner -->
-                    <div class="bg-[#edf5fd] border-b border-[#d0e3f7] px-3.5 py-2 flex justify-between items-center relative" dir="rtl">
-                        <span class="font-bold text-xs text-[#0369a1] truncate pr-2">${step.title || 'اسم الخطوة'}</span>
+                    <div class="card-header-banner bg-[#edf5fd] border-b border-[#d0e3f7] px-3.5 py-2 flex justify-between items-center gap-2 relative" dir="rtl">
+                        <span class="font-bold text-xs text-[#0369a1] truncate pr-1">${step.title || 'اسم الخطوة'}</span>
                     </div>
 
                     <!-- Card Body Content -->
@@ -676,12 +896,18 @@
 
             // Draw SVG connection arrows after DOM layout settles
             setTimeout(() => {
-                if (window.renderCanvasConnections) window.renderCanvasConnections();
+                if (window.renderCanvasConnections) {
+                    if (activeSelectedStepId) {
+                        applyStepGlowEffects(activeSelectedStepId);
+                    } else {
+                        window.renderCanvasConnections();
+                    }
+                }
             }, 60);
         }
 
-        // Render Canvas Connections (1-to-1 mirror of index.html editor)
-        window.renderCanvasConnections = function() {
+        // Render Canvas Connections with Glowing Highlighting Support
+        window.renderCanvasConnections = function(selectedId, parentId, nextIds, parallelIds) {
             const svgGroup = document.getElementById('svg-connections-group');
             const container = document.getElementById('blueprint-container');
             if (!svgGroup || !container) return;
@@ -708,6 +934,8 @@
                 if (!incomingMap[step.id]) incomingMap[step.id] = [];
                 incomingMap[step.id].push(item);
             });
+
+            const hasSelection = Boolean(selectedId);
 
             connections.forEach(item => {
                 const { step, preCard, currCard } = item;
@@ -835,14 +1063,47 @@
                 const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 pathEl.setAttribute('d', pathD);
                 pathEl.setAttribute('fill', 'none');
-                pathEl.setAttribute('stroke', isParallel ? '#2563eb' : '#0284c7');
-                pathEl.setAttribute('stroke-width', '2.5');
+
+                // Color & Marker selection based on active interactive glow
+                let strokeColor = isParallel ? '#2563eb' : '#0284c7';
+                let strokeWidth = '2.5';
+                let markerId = isParallel ? 'arrow-dashed' : 'arrow-solid';
+                let opacity = '1.0';
+
+                if (hasSelection) {
+                    const isFromParent = (step.pre_step_id === parentId && step.id === selectedId);
+                    const isToNext = (step.pre_step_id === selectedId && nextIds && nextIds.has(step.id));
+                    const isParallelConn = (isParallel && (step.pre_step_id === selectedId || step.id === selectedId || (parallelIds && (parallelIds.has(step.id) || parallelIds.has(step.pre_step_id)))));
+
+                    if (isFromParent) {
+                        strokeColor = '#2563eb'; // Blue
+                        strokeWidth = '3.5';
+                        markerId = 'arrow-solid-blue';
+                        pathEl.style.filter = 'drop-shadow(0 0 6px rgba(37,99,235,0.8))';
+                    } else if (isToNext) {
+                        strokeColor = '#10b981'; // Green
+                        strokeWidth = '3.5';
+                        markerId = 'arrow-solid-green';
+                        pathEl.style.filter = 'drop-shadow(0 0 6px rgba(16,185,129,0.8))';
+                    } else if (isParallelConn) {
+                        strokeColor = '#64748b'; // Grey
+                        strokeWidth = '3.5';
+                        markerId = 'arrow-dashed-grey';
+                        pathEl.style.filter = 'drop-shadow(0 0 6px rgba(100,116,139,0.8))';
+                    } else {
+                        opacity = '0.15';
+                    }
+                }
+
+                pathEl.setAttribute('stroke', strokeColor);
+                pathEl.setAttribute('stroke-width', strokeWidth);
+                pathEl.style.opacity = opacity;
 
                 if (isParallel) {
                     pathEl.setAttribute('stroke-dasharray', '6,6');
-                    pathEl.setAttribute('marker-end', 'url(#arrow-dashed)');
+                    pathEl.setAttribute('marker-end', `url(#${markerId})`);
                 } else {
-                    pathEl.setAttribute('marker-end', 'url(#arrow-solid)');
+                    pathEl.setAttribute('marker-end', `url(#${markerId})`);
                 }
 
                 svgGroup.appendChild(pathEl);
@@ -850,7 +1111,13 @@
         };
 
         window.addEventListener('resize', () => {
-            if (window.renderCanvasConnections) window.renderCanvasConnections();
+            if (window.renderCanvasConnections) {
+                if (activeSelectedStepId) {
+                    applyStepGlowEffects(activeSelectedStepId);
+                } else {
+                    window.renderCanvasConnections();
+                }
+            }
         });
         document.addEventListener('DOMContentLoaded', initInteractivePage);
     </script>
