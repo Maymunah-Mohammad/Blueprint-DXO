@@ -6,7 +6,6 @@
     <title>Service Blueprint</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image-more/3.5.0/dom-to-image-more.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
         
@@ -2395,7 +2394,7 @@
             window.open(targetUrl, '_blank');
         };
 
-        // Action Buttons: Export to Image ("تصدير كصورة") - Crystal-Clear Pixel-Perfect Native Renderer
+        // Action Buttons: Export to Image ("تصدير كصورة")
         window.exportBlueprintImage = async function() {
             if (!currentBlueprint.steps || currentBlueprint.steps.length === 0) {
                 showToast("يرجى إضافة خطوات أولاً للتصدير كصورة");
@@ -2403,78 +2402,41 @@
             }
 
             ensureBlueprintTitle();
-            window.showLoading("جاري تصدير المخطط كصورة عالية الدقة...");
+            window.showLoading("جاري التقاط وتصدير المخطط كصورة عالية الدقة...");
 
             try {
                 // 1. Auto-save current progress
                 localStorage.setItem('current_blueprint_backup', JSON.stringify(currentBlueprint));
                 await saveBlueprintToServer(false);
 
-                // 2. Refresh SVG arrows to ensure 100% exact alignment
+                // 2. Refresh SVG arrows to ensure perfect positioning
                 if (typeof renderConnections === 'function') {
                     renderConnections();
                 }
 
+                // 3. Target the blueprint container
                 const container = document.getElementById('blueprint-container');
                 if (!container) {
                     throw new Error("لم يتم العثور على حاوية المخطط");
                 }
 
-                await new Promise(r => setTimeout(r, 100));
+                // Wait a brief moment for layout & SVG render settlement
+                await new Promise(r => setTimeout(r, 150));
 
-                // 3. Measure container scroll bounds for high-res export
-                const scrollW = container.scrollWidth || container.offsetWidth;
-                const scrollH = container.scrollHeight || container.offsetHeight;
+                const canvas = await html2canvas(container, {
+                    scale: 2, // 2x High Resolution Retina quality
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: container.scrollWidth + 100,
+                    windowHeight: container.scrollHeight + 100,
+                    logging: false
+                });
 
-                // Temporarily hide action buttons on cards during screenshot capture
-                const cardButtons = container.querySelectorAll('.group button');
-                cardButtons.forEach(b => b.style.opacity = '0');
-
-                let imageUri = null;
-
-                // Priority 1: domtoimage (perfect browser-native SVG vector rendering of CSS & Arabic fonts)
-                if (window.domtoimage) {
-                    try {
-                        imageUri = await domtoimage.toPng(container, {
-                            width: scrollW,
-                            height: scrollH,
-                            bgcolor: '#ffffff',
-                            quality: 1.0,
-                            style: {
-                                transform: 'none',
-                                margin: '0',
-                                padding: '16px',
-                                background: '#ffffff'
-                            }
-                        });
-                    } catch (dErr) {
-                        console.warn("domtoimage render issue, falling back to html2canvas:", dErr);
-                    }
-                }
-
-                // Priority 2: html2canvas with letterRendering & exact font metrics if domtoimage was not available
-                if (!imageUri && window.html2canvas) {
-                    const canvas = await html2canvas(container, {
-                        scale: 2,
-                        useCORS: true,
-                        allowTaint: true,
-                        backgroundColor: '#ffffff',
-                        scrollX: 0,
-                        scrollY: 0,
-                        windowWidth: scrollW + 50,
-                        windowHeight: scrollH + 50,
-                        logging: false
-                    });
-                    imageUri = canvas.toDataURL('image/png');
-                }
-
-                // Restore card buttons
-                cardButtons.forEach(b => b.style.opacity = '');
-
-                if (!imageUri) {
-                    throw new Error("تعذر إنشاء الصورة بواسطة محرك المتصفح");
-                }
-
+                // Convert canvas to PNG blob/dataURL and trigger download
+                const imageUri = canvas.toDataURL('image/png');
                 const safeTitle = (currentBlueprint.title || 'Service_Blueprint').trim().replace(/[\/\\:*?"<>|]+/g, '_').replace(/\s+/g, '_');
                 const downloadLink = document.createElement('a');
                 downloadLink.download = `${safeTitle}.png`;
@@ -2483,7 +2445,7 @@
                 downloadLink.click();
                 document.body.removeChild(downloadLink);
 
-                showToast("تم تصدير المخطط كصورة PNG عالية الدقة بنجاح!");
+                showToast("تم تصدير المخطط كصورة PNG بنجاح!");
             } catch (err) {
                 console.error("Image export error:", err);
                 showToast("حدث خطأ أثناء تصدير الصورة: " + (err.message || "يرجى المحاولة مجدداً"));
