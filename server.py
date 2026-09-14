@@ -293,8 +293,13 @@ class BlueprintHandler(http.server.SimpleHTTPRequestHandler):
         parsed_url = urllib.parse.urlparse(self.path)
         path = parsed_url.path
 
-        if path in ['/', '/index.html', '/interactive', '/interactive.html']:
-            fname = 'interactive.html' if 'interactive' in path else 'index.html'
+        if path in ['/', '/index.html', '/interactive', '/interactive.html', '/export-pdf', '/export-pdf.html']:
+            if 'export-pdf' in path:
+                fname = 'export-pdf.html'
+            elif 'interactive' in path:
+                fname = 'interactive.html'
+            else:
+                fname = 'index.html'
             file_path = os.path.join(os.path.dirname(__file__), fname)
             if os.path.exists(file_path):
                 with open(file_path, 'rb') as f:

@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تصدير كـ PDF - DXO Service Blueprint</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Tajawal', sans-serif;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+
+        /* Blueprint Blocks & Rows - 100% Exact Match with Editor (index.html) */
+        .section-box {
+            display: flex;
+            align-items: stretch;
+            height: auto;
+            min-height: 120px;
+            border-radius: 4px;
+            position: relative;
+            direction: ltr;
+            overflow: visible;
+        }
+
+        .label-box {
+            width: 223px;
+            height: auto;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            margin-right: 10px;
+            margin-left: 0;
+            border-radius: 0;
+            align-self: stretch;
+            padding: 16px 8px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 30;
+        }
+
+        .line-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            height: 34px;
+            width: 100%;
+            direction: ltr;
+        }
+        .line-dash {
+            width: 100%;
+            border-bottom: 2px dashed #94a3b8;
+            position: absolute;
+            top: 50%;
+            z-index: 1;
+        }
+        .line-text {
+            background-color: #ffffff;
+            padding: 4px 14px;
+            border-radius: 20px;
+            border: 1px dashed #cbd5e1;
+            font-weight: 800;
+            font-size: 11px;
+            color: #475569;
+            z-index: 2;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        /* Row Color Styling */
+        .ca-row { background-color: #edf5fd; border: 1px solid #d0e3f7; }
+        .ca-label { background-color: #b0d1c6; color: #0369a1; }
+        .fs-row { background-color: #edfbf7; border: 1px solid #cceee5; }
+        .fs-label { background-color: #fce3ce; color: #047857; }
+        .bs-row { background-color: #fef8ed; border: 1px solid #f9e5c9; }
+        .bs-label { background-color: #f9d3b4; color: #b45309; }
+        .sp-row { background-color: #f3f4fd; border: 1px solid #dcdff9; }
+        .sp-label { background-color: #b1d2e7; color: #3730a3; }
+
+        .arabic-text { font-size: 13px; font-weight: 800; }
+        .english-text { font-size: 10px; font-weight: 700; opacity: 0.8; }
+
+        /* Blueprint Frame Container */
+        .blueprint-frame {
+            flex: 1;
+            width: 100%;
+            min-width: 0;
+            min-height: 0;
+            overflow: auto !important;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .blueprint-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-width: max-content;
+            transform-origin: top right;
+        }
+
+        /* Workspace container filling full screen */
+        .interactive-workspace {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8fafc;
+        }
+
+        @page {
+            size: A4 landscape;
+            margin: 5mm;
+        }
+
+        @media print {
+            header, .no-print, button {
+                display: none !important;
+            }
+            html, body {
+                width: 100% !important;
+                height: 100% !important;
+                max-height: 100vh !important;
+                overflow: hidden !important;
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .interactive-workspace {
+                width: 100% !important;
+                height: 100% !important;
+                max-height: 100vh !important;
+                overflow: hidden !important;
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: flex-start !important;
+                align-items: stretch !important;
+            }
+            #journey-title-container {
+                margin: 0 0 6px 0 !important;
+                padding: 0 4px !important;
+                flex-shrink: 0 !important;
+                display: flex !important;
+            }
+            .blueprint-frame {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                border-radius: 8px !important;
+                padding: 8px !important;
+                overflow: hidden !important;
+                width: 100% !important;
+                height: calc(100vh - 55px) !important;
+                max-height: calc(100vh - 55px) !important;
+                flex: 1 !important;
+                margin: 0 !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            .blueprint-container {
+                overflow: visible !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            *, .section-box, .line-container, .blueprint-frame, .blueprint-container {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                page-break-before: avoid !important;
+                page-break-after: avoid !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="interactive-workspace" dir="rtl">
+        <!-- Blueprint Title Header & Actions -->
+        <div id="journey-title-container" class="flex justify-between items-center px-1 pb-3 shrink-0" dir="rtl">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-gray-500">اسم الرحلة:</span>
+                <h1 id="journey-title-display" class="text-base font-extrabold text-gray-900 truncate">جاري التحميل...</h1>
+            </div>
+            <div class="flex items-center gap-2 no-print">
+                <button onclick="fitAndTriggerPrint()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                        <rect x="6" y="14" width="12" height="8"></rect>
+                    </svg>
+                    <span>طباعة / تصدير PDF</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Workspace holding the exact Blueprint Frame -->
+        <div class="blueprint-frame relative" id="blueprint-frame">
+            <!-- Loading Overlay inside Blueprint Frame -->
+            <div id="blueprint-loading-overlay" class="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-40 flex flex-col items-center justify-center gap-3 transition-opacity duration-300 hidden" dir="rtl">
+                <div class="flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-2xl shadow-xl border border-gray-800 animate-in fade-in zoom-in-95 duration-200">
+                    <svg class="animate-spin h-5 w-5 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span id="blueprint-loading-text" class="text-xs font-bold tracking-wide">جاري المعالجة والتحميل...</span>
+                </div>
+            </div>
+
+            <!-- Blueprint Canvas Container with SVG overlay inside to scale together perfectly -->
+            <div class="blueprint-container relative" id="blueprint-container">
+                <!-- Dynamic SVG Connections Overlay for Pre-step Arrows (Scales in 100% sync with container) -->
+                <svg id="blueprint-connections-svg" class="absolute inset-0 w-full h-full pointer-events-none z-10" style="overflow: visible;">
+                    <defs>
+                        <marker id="arrow-solid" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
+                        </marker>
+                        <marker id="arrow-dashed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb" />
+                        </marker>
+                    </defs>
+                    <g id="svg-connections-group"></g>
+                </svg>
+
+                <!-- Customer Actions -->
+                <div class="section-box ca-row">
+                    <div class="label-box ca-label flex-shrink-0">
+                        <span class="arabic-text" dir="rtl">أفعال العميل</span>
+                        <span class="english-text">(Customer Actions)</span>
+                    </div>
+                    <div class="steps-cards-container flex gap-10 p-3.5 flex-1 items-center" id="cards-ca" dir="ltr"></div>
+                </div>
+
+                <!-- Line of Interaction -->
+                <div class="line-container">
+                    <div class="line-text">
+                        <span dir="rtl">خط التفاعل</span>
+                        <span>(LINE OF INTERACTION)</span>
+                    </div>
+                    <div class="line-dash"></div>
+                </div>
+
+                <!-- Frontstage -->
+                <div class="section-box fs-row">
+                    <div class="label-box fs-label flex-shrink-0">
+                        <span class="arabic-text" dir="rtl">الواجهة الأمامية / الخط الأمامي</span>
+                        <span class="english-text">(Frontstage)</span>
+                    </div>
+                    <div class="steps-cards-container flex gap-10 p-3.5 flex-1 items-center" id="cards-fs" dir="ltr"></div>
+                </div>
+
+                <!-- Line of Visibility -->
+                <div class="line-container">
+                    <div class="line-text">
+                        <span dir="rtl">خط الرؤية</span>
+                        <span>(LINE OF VISIBILITY)</span>
+                    </div>
+                    <div class="line-dash"></div>
+                </div>
+
+                <!-- Backstage -->
+                <div class="section-box bs-row">
+                    <div class="label-box bs-label flex-shrink-0">
+                        <span class="arabic-text" dir="rtl">الكواليس / الخط الخلفي</span>
+                        <span class="english-text">(Backstage)</span>
+                    </div>
+                    <div class="steps-cards-container flex gap-10 p-3.5 flex-1 items-center" id="cards-bs" dir="ltr"></div>
+                </div>
+
+                <!-- Line of Internal Interaction -->
+                <div class="line-container">
+                    <div class="line-text">
+                        <span dir="rtl">خط التفاعل الداخلي</span>
+                        <span>(LINE OF INTERNAL INTERACTION)</span>
+                    </div>
+                    <div class="line-dash"></div>
+                </div>
+
+                <!-- Support Processes -->
+                <div class="section-box sp-row">
+                    <div class="label-box sp-label flex-shrink-0">
+                        <span class="arabic-text" dir="rtl">العمليات والدعم</span>
+                        <span class="english-text">(Support Processes / Behind the scenes)</span>
+                    </div>
+                    <div class="steps-cards-container flex gap-10 p-3.5 flex-1 items-center" id="cards-sp" dir="ltr"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript Data Loading & Auto-Fit Calculation -->
+    <script>
+        let currentBlueprint = {
+            id: '',
+            title: '',
+            steps: [],
+            characters: []
+        };
+
+        const containers = ['cards-ca', 'cards-fs', 'cards-bs', 'cards-sp'];
+
+        function getContainerIdByLayer(layerName) {
+            if (!layerName) return 'cards-ca';
+            if (layerName.includes('Customer Actions') || layerName.includes('أفعال العميل')) return 'cards-ca';
+            if (layerName.includes('Frontstage') || layerName.includes('الواجهة الأمامية')) return 'cards-fs';
+            if (layerName.includes('Backstage') || layerName.includes('الكواليس')) return 'cards-bs';
+            if (layerName.includes('Support Processes') || layerName.includes('العمليات والدعم')) return 'cards-sp';
+            return 'cards-ca';
+        }
+
+        function getLayerColorStyle(layerName) {
+            if (!layerName) return { bg: '#eaf3fe', text: '#0369a1', border: '#9fccfd', fullLayer: 'أفعال العميل (Customer Actions)' };
+            if (layerName.includes('Customer Actions') || layerName.includes('أفعال العميل')) {
+                return { bg: '#eaf3fe', text: '#0369a1', border: '#9fccfd', fullLayer: 'أفعال العميل (Customer Actions)' };
+            }
+            if (layerName.includes('Frontstage') || layerName.includes('الواجهة الأمامية')) {
+                return { bg: '#eaf1ec', text: '#047857', border: '#b0d1c6', fullLayer: 'الواجهة الأمامية / الخط الأمامي (Frontstage)' };
+            }
+            if (layerName.includes('Backstage') || layerName.includes('الكواليس')) {
+                return { bg: '#fef4e6', text: '#b45309', border: '#fbcc8e', fullLayer: 'الكواليس / الخط الخلفي (Backstage)' };
+            }
+            if (layerName.includes('Support Processes') || layerName.includes('العمليات والدعم')) {
+                return { bg: '#f0f4f8', text: '#3730a3', border: '#9fc3e5', fullLayer: 'العمليات والدعم (Support Processes / Behind the scenes)' };
+            }
+            return { bg: '#eaf3fe', text: '#0369a1', border: '#9fccfd', fullLayer: 'أفعال العميل (Customer Actions)' };
+        }
+
+        async function initExportPDFPage() {
+            let loaded = false;
+
+            // 1. Instant load from window.opener (parent editor window)
+            try {
+                if (window.opener && window.opener.currentBlueprint && window.opener.currentBlueprint.steps && window.opener.currentBlueprint.steps.length > 0) {
+                    currentBlueprint = JSON.parse(JSON.stringify(window.opener.currentBlueprint));
+                    loaded = true;
+                }
+            } catch(e) {
+                console.warn("Could not read from window.opener:", e);
+            }
+
+            // 2. Load from server API if ID is in URL and not loaded from opener
+            if (!loaded) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const bpId = urlParams.get('id');
+                if (bpId) {
+                    try {
+                        const res = await fetch(`/api/blueprints/${encodeURIComponent(bpId)}?t=${Date.now()}`);
+                        if (res.ok) {
+                            currentBlueprint = await res.json();
+                            loaded = true;
+                        }
+                    } catch(e) {
+                        console.warn("Could not fetch blueprint from server:", e);
+                    }
+                }
+            }
+
+            // 3. Fallback to LocalStorage
+            if (!loaded) {
+                const keys = ['current_blueprint_backup', 'current_blueprint', 'dxo_service_blueprint'];
+                for (const k of keys) {
+                    const raw = localStorage.getItem(k);
+                    if (raw) {
+                        try {
+                            const parsed = JSON.parse(raw);
+                            if (parsed && parsed.steps && parsed.steps.length > 0) {
+                                currentBlueprint = parsed;
+                                loaded = true;
+                                break;
+                            }
+                        } catch(e){}
+                    }
+                }
+            }
+
+            // Update Journey Title Header Display
+            const titleEl = document.getElementById('journey-title-display');
+            if (titleEl) {
+                titleEl.textContent = currentBlueprint.title || 'رحلة بدون عنوان';
+            }
+            document.title = `${currentBlueprint.title || 'المخطط'} - تصدير كـ PDF`;
+
+            // Render Blueprint Cards & Connections (Exact match with interactive.html)
+            renderBlueprint();
+
+            // Auto fit and trigger print dialog if requested or on load
+            const params = new URLSearchParams(window.location.search);
+            const autoPrint = params.get('print') === '1' || params.get('print') === 'true' || params.get('export') === 'pdf';
+
+            const onReady = () => {
+                setTimeout(() => {
+                    fitBlueprintToOnePage();
+                    if (autoPrint) {
+                        setTimeout(() => {
+                            window.print();
+                        }, 250);
+                    }
+                }, 100);
+            };
+
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(onReady);
+            } else {
+                setTimeout(onReady, 200);
+            }
+        }
+
+        // Fit Blueprint precisely to ONE single A4 landscape page (100% guarantee)
+        function fitBlueprintToOnePage() {
+            const container = document.getElementById('blueprint-container');
+            const frame = document.getElementById('blueprint-frame');
+            if (!container || !frame) return;
+
+            // 1. Reset any previous scale to measure true native unscaled dimensions
+            container.style.transform = 'none';
+            container.style.width = 'max-content';
+
+            // 2. Render unscaled connections so SVG coordinate geometry is 100% accurate
+            renderCanvasConnections();
+
+            // 3. Measure native container width & height
+            const nativeWidth = container.scrollWidth || container.offsetWidth;
+            const nativeHeight = container.scrollHeight || container.offsetHeight;
+
+            // 4. Target A4 Landscape Printable Area at standard 96DPI (297mm x 210mm - 10mm margins = 1045px x 710px)
+            // Available frame space in print/preview:
+            const targetWidth = 1045;
+            const targetHeight = 670;
+
+            const scaleX = targetWidth / nativeWidth;
+            const scaleY = targetHeight / nativeHeight;
+
+            // Fit whichever dimension is dominant to guarantee it fits entirely on 1 single page without multi-page split
+            const fitScale = Math.min(1.0, scaleX, scaleY);
+
+            if (fitScale < 1.0) {
+                container.style.transformOrigin = 'top right';
+                container.style.transform = `scale(${fitScale})`;
+                // Container width allocated so it doesn't clip
+                container.style.width = `${Math.ceil(100 / fitScale)}%`;
+            } else {
+                container.style.transform = 'none';
+                container.style.width = '100%';
+            }
+        }
+
+        window.fitAndTriggerPrint = function() {
+            fitBlueprintToOnePage();
+            setTimeout(() => {
+                window.print();
+            }, 150);
+        };
+
+        function renderBlueprint() {
+            containers.forEach(cid => {
+                const el = document.getElementById(cid);
+                if (el) el.innerHTML = '';
+            });
+
+            (currentBlueprint.steps || []).forEach((step, idx) => {
+                const cid = getContainerIdByLayer(step.layer);
+                const container = document.getElementById(cid);
+                if (!container) return;
+
+                // Remove placeholder if present
+                const placeholder = container.querySelector('.empty-placeholder');
+                if (placeholder) placeholder.remove();
+
+                const card = document.createElement('div');
+                card.className = "bg-white border border-[#d2d6db] rounded-2xl shadow-sm flex flex-col min-w-[270px] max-w-[290px] relative z-20 text-right text-xs shrink-0 transition-all hover:shadow-md overflow-hidden group";
+                card.setAttribute('data-step-id', step.id);
+                card.setAttribute('dir', 'rtl');
+
+                let charHtml = '';
+                if (step.character) {
+                    const charObj = (currentBlueprint.characters || []).find(c => (typeof c === 'string' ? c : c.name) === step.character);
+                    const charLayer = charObj ? (typeof charObj === 'string' ? step.layer : charObj.layer) : step.layer;
+                    const colorStyle = getLayerColorStyle(charLayer);
+
+                    charHtml = `<div class="font-bold px-2.5 py-1 rounded-full text-[11px] flex items-center gap-1.5 w-fit border shadow-2xs" style="background-color: ${colorStyle.bg}; color: ${colorStyle.text}; border-color: ${colorStyle.border};" dir="rtl">
+                        <span>👤</span>
+                        <span>${step.character}</span>
+                    </div>`;
+                }
+
+                let durationHtml = '';
+                if (step.duration) {
+                    durationHtml = `<div class="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-600 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-md w-fit" dir="rtl">
+                        <span>⏱️</span>
+                        <span>${step.duration} ${step.timeUnit || ''}</span>
+                    </div>`;
+                }
+
+                let relationBadgeHtml = '';
+                if (step.pre_step_id) {
+                    const targetPre = (currentBlueprint.steps || []).find(s => s.id === step.pre_step_id);
+                    if (targetPre) {
+                        const preTitle = targetPre.title || 'خطوة سابقة';
+                        if (step.relation_type === 'parallel') {
+                            relationBadgeHtml = `<div class="bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center gap-1 w-full text-right" dir="rtl">
+                                <div class="flex items-center gap-1 truncate" dir="rtl">
+                                    <span>⚡ بالتوازي مع:</span>
+                                    <span class="font-bold truncate">${preTitle}</span>
+                                </div>
+                            </div>`;
+                        } else {
+                            relationBadgeHtml = `<div class="bg-blue-50 text-blue-700 border border-blue-200 rounded-md px-2 py-0.5 text-[11px] font-semibold flex items-center gap-1 w-full text-right" dir="rtl">
+                                <div class="flex items-center gap-1 truncate" dir="rtl">
+                                    <span>🔗 يتبع الخطوة:</span>
+                                    <span class="font-bold truncate">${preTitle}</span>
+                                </div>
+                            </div>`;
+                        }
+                    }
+                }
+
+                let evidenceHtml = '';
+                if (step.evidence) {
+                    const items = step.evidence.split(/[,،\n]+/).map(s => s.trim()).filter(Boolean);
+                    const badges = items.map(item => `<span class="bg-gray-100 border border-gray-300 rounded-full px-2.5 py-0.5 text-[11px] font-medium text-gray-700">${item}</span>`).join(' ');
+                    evidenceHtml = `<div class="flex flex-col gap-1">
+                        <span class="font-bold text-[11px] text-[#0284c7]">الأدلة المادية</span>
+                        <div class="flex flex-wrap gap-1.5">${badges}</div>
+                    </div>`;
+                }
+
+                let painHtml = '';
+                if (step.painPoints) {
+                    painHtml = `<div class="bg-[#fff0f0] text-red-800 border border-red-100 rounded-xl p-2.5 flex flex-col gap-1 mt-1">
+                        <span class="font-bold text-[11px] text-red-600">النقاط الحرجة / المشاكل</span>
+                        <p class="text-xs text-gray-700 leading-relaxed">${step.painPoints}</p>
+                    </div>`;
+                }
+
+                card.innerHTML = `
+                    <!-- Card Top Header Banner -->
+                    <div class="bg-[#edf5fd] border-b border-[#d0e3f7] px-3.5 py-2 flex justify-between items-center relative" dir="rtl">
+                        <span class="font-bold text-xs text-[#0369a1] truncate pr-2">${step.title || 'اسم الخطوة'}</span>
+                    </div>
+
+                    <!-- Card Body Content -->
+                    <div class="p-3.5 flex flex-col gap-2.5" dir="rtl">
+                        <div class="flex justify-between items-center gap-2 flex-wrap">
+                            ${charHtml}
+                            ${durationHtml}
+                        </div>
+
+                        ${relationBadgeHtml}
+
+                        <div class="flex flex-col gap-1">
+                            <span class="font-bold text-[11px] text-[#0284c7]">وصف الخطوة</span>
+                            <p class="text-xs text-gray-700 leading-relaxed">${step.description || 'اسم الرحلة'}</p>
+                        </div>
+
+                        ${evidenceHtml}
+                        ${painHtml}
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+
+            containers.forEach(cid => {
+                const el = document.getElementById(cid);
+                if (el && el.children.length === 0) {
+                    el.innerHTML = `<div class="empty-placeholder text-gray-300 text-xs font-semibold py-3 px-4 border border-dashed border-gray-200 rounded-lg whitespace-nowrap opacity-60">لا يوجد خطوات في هذه الطبقة بعد</div>`;
+                }
+            });
+
+            // Draw SVG connection arrows after DOM layout settles
+            setTimeout(() => {
+                renderCanvasConnections();
+            }, 60);
+        }
+
+        // Render Canvas Connections (1-to-1 mirror of index.html and interactive.html)
+        window.renderCanvasConnections = function() {
+            const svgGroup = document.getElementById('svg-connections-group');
+            const container = document.getElementById('blueprint-container');
+            if (!svgGroup || !container) return;
+
+            svgGroup.innerHTML = '';
+            const containerRect = container.getBoundingClientRect();
+
+            // In case container has a scale applied, divide by scale factor to obtain unscaled local coordinates
+            const currentTransform = container.style.transform;
+            let currentScale = 1.0;
+            const matchScale = currentTransform.match(/scale\(([^)]+)\)/);
+            if (matchScale && matchScale[1]) {
+                currentScale = parseFloat(matchScale[1]) || 1.0;
+            }
+
+            const connections = [];
+            const outgoingMap = {};
+            const incomingMap = {};
+
+            (currentBlueprint.steps || []).forEach(step => {
+                if (!step.pre_step_id) return;
+                const preCard = document.querySelector(`[data-step-id="${step.pre_step_id}"]`);
+                const currCard = document.querySelector(`[data-step-id="${step.id}"]`);
+                if (!preCard || !currCard) return;
+
+                const item = { step, preCard, currCard };
+                connections.push(item);
+
+                if (!outgoingMap[step.pre_step_id]) outgoingMap[step.pre_step_id] = [];
+                outgoingMap[step.pre_step_id].push(item);
+
+                if (!incomingMap[step.id]) incomingMap[step.id] = [];
+                incomingMap[step.id].push(item);
+            });
+
+            connections.forEach(item => {
+                const { step, preCard, currCard } = item;
+
+                const outGroup = outgoingMap[step.pre_step_id] || [];
+                const inGroup = incomingMap[step.id] || [];
+
+                const outIdx = outGroup.indexOf(item);
+                const inIdx = inGroup.indexOf(item);
+
+                const outOffset = outGroup.length > 1 ? (outIdx - (outGroup.length - 1) / 2) * 14 : 0;
+                const inOffset = inGroup.length > 1 ? (inIdx - (inGroup.length - 1) / 2) * 14 : 0;
+
+                const r1 = preCard.getBoundingClientRect();
+                const r2 = currCard.getBoundingClientRect();
+
+                const pre = {
+                    left: (r1.left - containerRect.left) / currentScale,
+                    right: (r1.right - containerRect.left) / currentScale,
+                    top: (r1.top - containerRect.top) / currentScale,
+                    bottom: (r1.bottom - containerRect.top) / currentScale,
+                    centerX: ((r1.left + r1.right) / 2 - containerRect.left) / currentScale,
+                    centerY: ((r1.top + r1.bottom) / 2 - containerRect.top) / currentScale
+                };
+
+                const curr = {
+                    left: (r2.left - containerRect.left) / currentScale,
+                    right: (r2.right - containerRect.left) / currentScale,
+                    top: (r2.top - containerRect.top) / currentScale,
+                    bottom: (r2.bottom - containerRect.top) / currentScale,
+                    centerX: ((r2.left + r2.right) / 2 - containerRect.left) / currentScale,
+                    centerY: ((r2.top + r2.bottom) / 2 - containerRect.top) / currentScale
+                };
+
+                const isParallel = step.relation_type === 'parallel';
+
+                let startX, startY, endX, endY;
+                let pathD = '';
+
+                if (!isParallel) {
+                    const isSameY = Math.abs(pre.centerY - curr.centerY) < 40;
+
+                    if (isSameY) {
+                        if (pre.right <= curr.left + 15) {
+                            startX = pre.right;
+                            startY = pre.centerY + outOffset;
+                            endX = curr.left;
+                            endY = curr.centerY + inOffset;
+                        } else {
+                            startX = pre.left;
+                            startY = pre.centerY + outOffset;
+                            endX = curr.right;
+                            endY = curr.centerY + inOffset;
+                        }
+                        const deltaX = Math.max(25, Math.abs(endX - startX) / 2);
+                        pathD = `M ${startX} ${startY} C ${startX + deltaX} ${startY}, ${endX - deltaX} ${endY}, ${endX} ${endY}`;
+                    } else {
+                        if (curr.left >= pre.right - 10) {
+                            startX = pre.right;
+                            startY = pre.centerY + outOffset;
+                            endX = curr.left;
+                            endY = curr.centerY + inOffset;
+                            const deltaX = Math.max(35, Math.abs(endX - startX) / 2);
+                            pathD = `M ${startX} ${startY} C ${startX + deltaX} ${startY}, ${endX - deltaX} ${endY}, ${endX} ${endY}`;
+                        } else if (pre.left >= curr.right - 10) {
+                            startX = pre.left;
+                            startY = pre.centerY + outOffset;
+                            endX = curr.right;
+                            endY = curr.centerY + inOffset;
+                            const deltaX = Math.max(35, Math.abs(startX - endX) / 2);
+                            pathD = `M ${startX} ${startY} C ${startX - deltaX} ${startY}, ${endX + deltaX} ${endY}, ${endX} ${endY}`;
+                        } else {
+                            if (pre.centerY > curr.centerY) {
+                                startX = pre.centerX + outOffset;
+                                startY = pre.top;
+                                endX = curr.centerX + inOffset;
+                                endY = curr.bottom;
+                            } else {
+                                startX = pre.centerX + outOffset;
+                                startY = pre.bottom;
+                                endX = curr.centerX + inOffset;
+                                endY = curr.top;
+                            }
+                            const deltaY = Math.max(25, Math.abs(endY - startY) / 2);
+                            const dir = endY >= startY ? 1 : -1;
+                            pathD = `M ${startX} ${startY} C ${startX} ${startY + dir * deltaY}, ${endX} ${endY - dir * deltaY}, ${endX} ${endY}`;
+                        }
+                    }
+                } else {
+                    if (pre.centerY < curr.centerY - 20) {
+                        startX = pre.centerX + outOffset;
+                        startY = pre.bottom;
+                        endX = curr.centerX + inOffset;
+                        endY = curr.top;
+                    } else if (pre.centerY > curr.centerY + 20) {
+                        startX = pre.centerX + outOffset;
+                        startY = pre.top;
+                        endX = curr.centerX + inOffset;
+                        endY = curr.bottom;
+                    } else {
+                        startX = pre.centerX + outOffset;
+                        startY = pre.bottom;
+                        endX = curr.centerX + inOffset;
+                        endY = curr.bottom;
+                    }
+
+                    const deltaY = Math.max(25, Math.abs(endY - startY) / 2);
+                    const dir = endY >= startY ? 1 : -1;
+                    pathD = `M ${startX} ${startY} C ${startX} ${startY + dir * deltaY}, ${endX} ${endY - dir * deltaY}, ${endX} ${endY}`;
+                }
+
+                const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                pathEl.setAttribute('d', pathD);
+                pathEl.setAttribute('fill', 'none');
+                pathEl.setAttribute('stroke', isParallel ? '#2563eb' : '#0284c7');
+                pathEl.setAttribute('stroke-width', '2.5');
+
+                if (isParallel) {
+                    pathEl.setAttribute('stroke-dasharray', '6,6');
+                    pathEl.setAttribute('marker-end', 'url(#arrow-dashed)');
+                } else {
+                    pathEl.setAttribute('marker-end', 'url(#arrow-solid)');
+                }
+
+                svgGroup.appendChild(pathEl);
+            });
+        };
+
+        window.addEventListener('resize', () => {
+            fitBlueprintToOnePage();
+        });
+
+        window.addEventListener('beforeprint', () => {
+            fitBlueprintToOnePage();
+        });
+
+        document.addEventListener('DOMContentLoaded', initExportPDFPage);
+    </script>
+</body>
+</html>
