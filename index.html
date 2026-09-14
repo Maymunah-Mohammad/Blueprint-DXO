@@ -345,6 +345,9 @@
         .bs-row { background-color: #fef4e6; }
         .bs-label { background-color: #fbcc8e; }
         
+        .sp-row { background-color: #f1f5f9; }
+        .sp-label { background-color: #cbd5e1; color: #334155; }
+        
         /* Floating Character Modal Overlay */
         #character-modal {
             position: fixed !important;
@@ -470,7 +473,7 @@
                         <option value="Customer Actions" selected class="ca-row font-semibold text-[#0369a1]">أفعال العميل (Customer Actions)</option>
                         <option value="Frontstage" class="fs-row font-semibold text-[#047857]">الواجهة الأمامية / الخط الأمامي (Frontstage)</option>
                         <option value="Backstage" class="bs-row font-semibold text-[#b45309]">الكواليس / الخط الخلفي (Backstage)</option>
-                        <option value="Support Processes" class="sp-row font-semibold text-[#3730a3]">العمليات والدعم (Support Processes)</option>
+                        <option value="Support Processes" class="sp-row font-semibold text-[#334155]">العمليات والدعم (Support Processes)</option>
                     </select>
                 </div>
 
@@ -963,7 +966,7 @@
                 return { bg: '#fef4e6', text: '#b45309', border: '#fbcc8e', fullLayer: 'الكواليس / الخط الخلفي (Backstage)' };
             }
             if (layerName.includes('Support Processes') || layerName.includes('العمليات والدعم')) {
-                return { bg: '#f0f4f8', text: '#3730a3', border: '#9fc3e5', fullLayer: 'العمليات والدعم (Support Processes / Behind the scenes)' };
+                return { bg: '#f1f5f9', text: '#334155', border: '#cbd5e1', fullLayer: 'العمليات والدعم (Support Processes / Behind the scenes)' };
             }
             return { bg: '#eaf3fe', text: '#0369a1', border: '#9fccfd', fullLayer: 'أفعال العميل (Customer Actions)' };
         }
