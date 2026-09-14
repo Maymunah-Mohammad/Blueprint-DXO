@@ -575,10 +575,10 @@
                         <svg id="blueprint-connections-svg" class="absolute inset-0 w-full h-full pointer-events-none z-10" style="overflow: visible;">
                             <defs>
                                 <marker id="arrow-solid" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
+                                    <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0284c7" />
                                 </marker>
                                 <marker id="arrow-dashed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-                                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb" />
+                                    <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2563eb" />
                                 </marker>
                             </defs>
                             <g id="svg-connections-group"></g>
@@ -1620,7 +1620,7 @@
                 const outIdx = outGroup.indexOf(item);
                 const inIdx = inGroup.indexOf(item);
 
-                // 14px spacing offset between multiple branching or converging arrows (guarantees >= 6px clear gap between arrowhead edges)
+                // 14px spacing offset between multiple branching or converging arrows
                 const outOffset = outGroup.length > 1 ? (outIdx - (outGroup.length - 1) / 2) * 14 : 0;
                 const inOffset = inGroup.length > 1 ? (inIdx - (inGroup.length - 1) / 2) * 14 : 0;
 
@@ -1651,10 +1651,10 @@
                 let pathD = '';
 
                 if (!isParallel) {
-                    const isSameY = Math.abs(pre.centerY - curr.centerY) < 40;
+                    const isSameY = Math.abs(pre.centerY - curr.centerY) < 30;
 
                     if (isSameY) {
-                        // Same layer: Smooth horizontal wavy curve
+                        // Same layer: straight horizontal connection
                         if (pre.right <= curr.left + 15) {
                             startX = pre.right;
                             startY = pre.centerY + outOffset;
@@ -1666,64 +1666,79 @@
                             endX = curr.right;
                             endY = curr.centerY + inOffset;
                         }
-                        const deltaX = Math.max(25, Math.abs(endX - startX) / 2);
-                        pathD = `M ${startX} ${startY} C ${startX + deltaX} ${startY}, ${endX - deltaX} ${endY}, ${endX} ${endY}`;
+                        pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
                     } else {
-                        // Different layers (cross-path steps): Smooth wavy S-curves
-                        if (curr.left >= pre.right - 10) {
+                        // Different layers: Smooth S-curve with horizontal stubs so arrowhead is ALWAYS 100% flat
+                        if (curr.left >= pre.right - 15) {
                             startX = pre.right;
                             startY = pre.centerY + outOffset;
                             endX = curr.left;
                             endY = curr.centerY + inOffset;
-                            const deltaX = Math.max(35, Math.abs(endX - startX) / 2);
-                            pathD = `M ${startX} ${startY} C ${startX + deltaX} ${startY}, ${endX - deltaX} ${endY}, ${endX} ${endY}`;
-                        } else if (pre.left >= curr.right - 10) {
+
+                            const stubOut = 18; // 18px horizontal exit stub
+                            const stubIn = 22;  // 22px horizontal entrance stub (guarantees arrowhead is 100% horizontal)
+                            const p1X = startX + stubOut;
+                            const p1Y = startY;
+                            const p2X = endX - stubIn;
+                            const p2Y = endY;
+                            const midX = (p1X + p2X) / 2;
+
+                            pathD = `M ${startX} ${startY} L ${p1X} ${p1Y} C ${midX} ${p1Y}, ${midX} ${p2Y}, ${p2X} ${p2Y} L ${endX} ${endY}`;
+                        } else if (pre.left >= curr.right - 15) {
                             startX = pre.left;
                             startY = pre.centerY + outOffset;
                             endX = curr.right;
                             endY = curr.centerY + inOffset;
-                            const deltaX = Math.max(35, Math.abs(startX - endX) / 2);
-                            pathD = `M ${startX} ${startY} C ${startX - deltaX} ${startY}, ${endX + deltaX} ${endY}, ${endX} ${endY}`;
+
+                            const stubOut = 18;
+                            const stubIn = 22;
+                            const p1X = startX - stubOut;
+                            const p1Y = startY;
+                            const p2X = endX + stubIn;
+                            const p2Y = endY;
+                            const midX = (p1X + p2X) / 2;
+
+                            pathD = `M ${startX} ${startY} L ${p1X} ${p1Y} C ${midX} ${p1Y}, ${midX} ${p2Y}, ${p2X} ${p2Y} L ${endX} ${endY}`;
                         } else {
-                            // Horizontally overlapping / steps on top of each other: Smooth wavy vertical S-curves
-                            if (pre.centerY > curr.centerY) {
-                                startX = pre.centerX + outOffset;
-                                startY = pre.top;
-                                endX = curr.centerX + inOffset;
-                                endY = curr.bottom;
-                            } else {
-                                startX = pre.centerX + outOffset;
-                                startY = pre.bottom;
-                                endX = curr.centerX + inOffset;
-                                endY = curr.top;
-                            }
-                            const deltaY = Math.max(25, Math.abs(endY - startY) / 2);
-                            const dir = endY >= startY ? 1 : -1;
-                            pathD = `M ${startX} ${startY} C ${startX} ${startY + dir * deltaY}, ${endX} ${endY - dir * deltaY}, ${endX} ${endY}`;
+                            // Vertically aligned / overlapping steps
+                            const goingDown = curr.centerY >= pre.centerY;
+                            startX = pre.centerX + outOffset;
+                            startY = goingDown ? pre.bottom : pre.top;
+                            endX = curr.centerX + inOffset;
+                            endY = goingDown ? curr.top : curr.bottom;
+
+                            const dir = goingDown ? 1 : -1;
+                            const stubOut = 14 * dir;
+                            const stubIn = 18 * dir;
+                            const p1Y = startY + stubOut;
+                            const p2Y = endY - stubIn;
+                            const midY = (p1Y + p2Y) / 2;
+
+                            pathD = `M ${startX} ${startY} L ${startX} ${p1Y} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${p2Y} L ${endX} ${endY}`;
                         }
                     }
                 } else {
-                    // Parallel: Dashed line smooth wavy curve
-                    if (pre.centerY < curr.centerY - 20) {
-                        startX = pre.centerX + outOffset;
-                        startY = pre.bottom;
-                        endX = curr.centerX + inOffset;
-                        endY = curr.top;
-                    } else if (pre.centerY > curr.centerY + 20) {
-                        startX = pre.centerX + outOffset;
-                        startY = pre.top;
-                        endX = curr.centerX + inOffset;
-                        endY = curr.bottom;
-                    } else {
-                        startX = pre.centerX + outOffset;
-                        startY = pre.bottom;
-                        endX = curr.centerX + inOffset;
-                        endY = curr.bottom;
-                    }
+                    // Parallel: Dashed line vertical connection with straight lead-in stub
+                    const goingDown = curr.centerY >= pre.centerY;
+                    startX = pre.centerX + outOffset;
+                    startY = goingDown ? pre.bottom : pre.top;
+                    endX = curr.centerX + inOffset;
+                    endY = goingDown ? curr.top : curr.bottom;
 
-                    const deltaY = Math.max(25, Math.abs(endY - startY) / 2);
-                    const dir = endY >= startY ? 1 : -1;
-                    pathD = `M ${startX} ${startY} C ${startX} ${startY + dir * deltaY}, ${endX} ${endY - dir * deltaY}, ${endX} ${endY}`;
+                    const dir = goingDown ? 1 : -1;
+
+                    if (Math.abs(startX - endX) < 2) {
+                        // Direct straight vertical line
+                        pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
+                    } else {
+                        // Offset vertical S-curve with vertical lead-in stub
+                        const stubOut = 12 * dir;
+                        const stubIn = 16 * dir;
+                        const p1Y = startY + stubOut;
+                        const p2Y = endY - stubIn;
+                        const midY = (p1Y + p2Y) / 2;
+                        pathD = `M ${startX} ${startY} L ${startX} ${p1Y} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${p2Y} L ${endX} ${endY}`;
+                    }
                 }
 
                 const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
