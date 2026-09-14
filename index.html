@@ -764,9 +764,17 @@
                     
                     <div class="form-group">
                         <div class="form-label">الأدلة المادية</div>
-                        <input type="text" id="evidence-input" class="form-input" list="evidence-list" placeholder="إدراج أو اختيار (افصل بينها بفاصلة ،)" dir="rtl">
+                        <div class="flex items-center gap-1.5">
+                            <input type="text" id="evidence-input" class="form-input flex-1" list="evidence-list" placeholder="اكتب دليلاً مادياً واضغط إدراج" dir="rtl">
+                            <button type="button" id="add-evidence-chip-btn" onclick="window.addEvidenceChipFromInput()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs px-3 py-2 rounded-lg border border-gray-300 shrink-0 transition-colors flex items-center gap-1 cursor-pointer" title="إضافة كـ Chip">
+                                <span>+</span>
+                                <span>إدراج</span>
+                            </button>
+                        </div>
                         <datalist id="evidence-list"></datalist>
-                        <div class="form-hint">يمكنك كتابة عدة أدلة مفصولة بفاصلة (،) أو سطر جديد لتظهر كـ Chips منفصلة.</div>
+                        <!-- Interactive chips preview container -->
+                        <div id="evidence-chips-container" class="flex flex-wrap gap-1.5 mt-2 empty:hidden"></div>
+                        <div class="form-hint">يمكنك كتابة عناصر متعددة وضغط زر "إدراج" أو استخدام الفاصلة (،) لحذف ما لا تريده قبل الحفظ.</div>
                     </div>
                     
                     <div class="form-group">
@@ -777,8 +785,16 @@
                     
                     <div class="form-group">
                         <div class="form-label">النقاط الحرجة أو المشاكل (/ Pain Points Bottlenecks)</div>
-                        <textarea id="pain-points-input" class="form-textarea" placeholder="اكتب المشاكل أو النقاط الحرجة (افصل بينها بفاصلة ، أو سطر جديد)"></textarea>
-                        <div class="form-hint">يمكنك إدخال عدة نقاط حرجة ومشاكل مفصولة بفاصلة (،) أو سطر جديد لتظهر كـ Chips حمراء تنبيهية داخل البطاقة.</div>
+                        <div class="flex items-center gap-1.5">
+                            <input type="text" id="pain-points-input" class="form-input flex-1" placeholder="اكتب نقطة حرجة / مشكلة واضغط إدراج" dir="rtl">
+                            <button type="button" id="add-pain-chip-btn" onclick="window.addPainChipFromInput()" class="bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs px-3 py-2 rounded-lg border border-red-200 shrink-0 transition-colors flex items-center gap-1 cursor-pointer" title="إضافة كـ Chip">
+                                <span>+</span>
+                                <span>إدراج</span>
+                            </button>
+                        </div>
+                        <!-- Interactive chips preview container -->
+                        <div id="pain-chips-container" class="flex flex-wrap gap-1.5 mt-2 empty:hidden"></div>
+                        <div class="form-hint">يمكنك إدخال عدة نقاط حرجة ومشاكل وحذف غير المرغوب منها بسهولة قبل حفظ الخطوة.</div>
                     </div>
                     
                     <div class="form-group">
@@ -1631,6 +1647,103 @@
 
         window.editingStepIndex = null;
 
+        // Chips Management for Evidence and Pain Points
+        window.evidenceChipsList = [];
+        window.painChipsList = [];
+
+        window.renderEvidenceChips = function() {
+            const container = document.getElementById('evidence-chips-container');
+            if (!container) return;
+            container.innerHTML = '';
+            window.evidenceChipsList.forEach((chipText, idx) => {
+                const chip = document.createElement('div');
+                chip.className = "bg-gray-100 border border-gray-300 text-gray-800 rounded-full px-2.5 py-0.5 text-xs font-medium flex items-center gap-1.5 shadow-2xs group animate-in fade-in zoom-in-95 duration-150";
+                chip.innerHTML = `
+                    <span>${chipText}</span>
+                    <button type="button" onclick="window.removeEvidenceChip(${idx})" class="text-gray-400 hover:text-red-600 font-bold text-xs p-0.5 rounded-full hover:bg-gray-200 leading-none cursor-pointer" title="حذف">&times;</button>
+                `;
+                container.appendChild(chip);
+            });
+        };
+
+        window.renderPainChips = function() {
+            const container = document.getElementById('pain-chips-container');
+            if (!container) return;
+            container.innerHTML = '';
+            window.painChipsList.forEach((chipText, idx) => {
+                const chip = document.createElement('div');
+                chip.className = "bg-[#fff0f0] border border-red-200 text-red-800 rounded-lg px-2.5 py-1 text-xs font-medium flex items-center gap-1.5 shadow-2xs group animate-in fade-in zoom-in-95 duration-150";
+                chip.innerHTML = `
+                    <span class="text-red-500 text-[11px]">⚠️</span>
+                    <span class="leading-tight">${chipText}</span>
+                    <button type="button" onclick="window.removePainChip(${idx})" class="text-red-400 hover:text-red-700 font-bold text-xs p-0.5 rounded-full hover:bg-red-100 leading-none cursor-pointer" title="حذف">&times;</button>
+                `;
+                container.appendChild(chip);
+            });
+        };
+
+        window.addEvidenceChipFromInput = function() {
+            const input = document.getElementById('evidence-input');
+            if (!input) return;
+            const val = input.value.trim();
+            if (!val) return;
+            const items = val.split(/[,،\n]+/).map(s => s.trim()).filter(Boolean);
+            items.forEach(item => {
+                if (item && !window.evidenceChipsList.includes(item)) {
+                    window.evidenceChipsList.push(item);
+                }
+            });
+            input.value = '';
+            window.renderEvidenceChips();
+        };
+
+        window.addPainChipFromInput = function() {
+            const input = document.getElementById('pain-points-input');
+            if (!input) return;
+            const val = input.value.trim();
+            if (!val) return;
+            const items = val.split(/[,،\n]+/).map(s => s.trim()).filter(Boolean);
+            items.forEach(item => {
+                if (item && !window.painChipsList.includes(item)) {
+                    window.painChipsList.push(item);
+                }
+            });
+            input.value = '';
+            window.renderPainChips();
+        };
+
+        window.removeEvidenceChip = function(idx) {
+            window.evidenceChipsList.splice(idx, 1);
+            window.renderEvidenceChips();
+        };
+
+        window.removePainChip = function(idx) {
+            window.painChipsList.splice(idx, 1);
+            window.renderPainChips();
+        };
+
+        // Keydown support for Enter / Comma
+        document.addEventListener('DOMContentLoaded', () => {
+            const evInput = document.getElementById('evidence-input');
+            if (evInput) {
+                evInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ',') {
+                        e.preventDefault();
+                        window.addEvidenceChipFromInput();
+                    }
+                });
+            }
+            const painInput = document.getElementById('pain-points-input');
+            if (painInput) {
+                painInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ',') {
+                        e.preventDefault();
+                        window.addPainChipFromInput();
+                    }
+                });
+            }
+        });
+
         // Edit Step Function
         window.editStep = function(idx) {
             const step = currentBlueprint.steps[idx];
@@ -1651,14 +1764,22 @@
             const addStepBtn = document.getElementById('add-step-btn');
 
             if (stepTitleInput) stepTitleInput.value = step.title || '';
-            if (evidenceInput) evidenceInput.value = step.evidence || '';
             if (activityDescInput) activityDescInput.value = step.description || '';
-            if (painPointsInput) painPointsInput.value = step.painPoints || '';
             if (durationValInput) durationValInput.value = step.duration || '';
             if (durationUnitSelect && step.timeUnit) durationUnitSelect.value = step.timeUnit;
             if (preStepSelect) preStepSelect.value = step.pre_step_id || '';
             if (stepRelationSelect) stepRelationSelect.value = step.relation_type || 'next';
             if (selectedText && step.layer) selectedText.textContent = step.layer;
+
+            // Populate Evidence Chips
+            if (evidenceInput) evidenceInput.value = '';
+            window.evidenceChipsList = step.evidence ? step.evidence.split(/[,،\n]+/).map(s => s.trim()).filter(Boolean) : [];
+            window.renderEvidenceChips();
+
+            // Populate Pain Points Chips
+            if (painPointsInput) painPointsInput.value = '';
+            window.painChipsList = step.painPoints ? step.painPoints.split(/[,،\n]+/).map(s => s.trim()).filter(Boolean) : [];
+            window.renderPainChips();
 
             if (step.character) {
                 setActiveCharacter(step.character);
@@ -1828,10 +1949,18 @@
                 await window.addCharacter("العميل الرئيسي", "Customer Actions");
             }
 
+            // Flush any typed text in evidence or pain-points input into chips before submission
+            if (evidenceInput && evidenceInput.value.trim()) {
+                window.addEvidenceChipFromInput();
+            }
+            if (painPointsInput && painPointsInput.value.trim()) {
+                window.addPainChipFromInput();
+            }
+
             const titleVal = stepTitleInput.value.trim();
-            const evidenceVal = evidenceInput.value.trim();
+            const evidenceVal = window.evidenceChipsList.join('، ');
             const descVal = activityDescInput.value.trim();
-            const painVal = painPointsInput.value.trim();
+            const painVal = window.painChipsList.join('، ');
             const durationVal = durationValInput.value.trim();
             const unitVal = durationUnitSelect.value;
             let layerVal = selectedText ? selectedText.textContent : '';
@@ -1943,8 +2072,14 @@
                 // Reset Form Inputs
                 stepTitleInput.value = '';
                 evidenceInput.value = '';
+                window.evidenceChipsList = [];
+                window.renderEvidenceChips();
+
                 activityDescInput.value = '';
                 painPointsInput.value = '';
+                window.painChipsList = [];
+                window.renderPainChips();
+
                 durationValInput.value = '';
                 if (preStepSelect) preStepSelect.value = '';
                 if (stepRelationSelect) stepRelationSelect.value = 'next';
