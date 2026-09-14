@@ -776,21 +776,21 @@
                 let pathD = '';
 
                 if (!isParallel) {
-                    const isSameY = Math.abs(pre.centerY - curr.centerY) < 30;
+                    const isSameY = Math.abs(pre.centerY - curr.centerY) < 45;
 
                     if (isSameY) {
+                        // Same layer: ALWAYS 100% flat horizontal arrow (0 degrees)
+                        const arrowY = Math.round((pre.centerY + curr.centerY) / 2);
                         if (pre.right <= curr.left + 15) {
                             startX = pre.right;
-                            startY = pre.centerY + outOffset;
                             endX = curr.left;
-                            endY = curr.centerY + inOffset;
                         } else {
                             startX = pre.left;
-                            startY = pre.centerY + outOffset;
                             endX = curr.right;
-                            endY = curr.centerY + inOffset;
                         }
-                        pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
+                        startY = arrowY;
+                        endY = arrowY;
+                        pathD = `M ${startX} ${arrowY} L ${endX} ${arrowY}`;
                     } else {
                         if (curr.left >= pre.right - 15) {
                             startX = pre.right;
