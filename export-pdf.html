@@ -7,6 +7,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image-more/3.5.0/dom-to-image-more.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
         * {
@@ -502,22 +503,52 @@
             container.style.width = 'max-content';
             renderCanvasConnections();
 
-            await new Promise(r => setTimeout(r, 150));
+            await new Promise(r => setTimeout(r, 100));
+
+            const scrollW = container.scrollWidth || container.offsetWidth;
+            const scrollH = container.scrollHeight || container.offsetHeight;
 
             try {
-                const canvas = await html2canvas(container, {
-                    scale: 2,
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff',
-                    scrollX: 0,
-                    scrollY: 0,
-                    windowWidth: container.scrollWidth + 100,
-                    windowHeight: container.scrollHeight + 100,
-                    logging: false
-                });
+                let imageUri = null;
 
-                const imageUri = canvas.toDataURL('image/png');
+                if (window.domtoimage) {
+                    try {
+                        imageUri = await domtoimage.toPng(container, {
+                            width: scrollW,
+                            height: scrollH,
+                            bgcolor: '#ffffff',
+                            quality: 1.0,
+                            style: {
+                                transform: 'none',
+                                margin: '0',
+                                padding: '16px',
+                                background: '#ffffff'
+                            }
+                        });
+                    } catch (dErr) {
+                        console.warn("domtoimage error:", dErr);
+                    }
+                }
+
+                if (!imageUri && window.html2canvas) {
+                    const canvas = await html2canvas(container, {
+                        scale: 2,
+                        useCORS: true,
+                        allowTaint: true,
+                        backgroundColor: '#ffffff',
+                        scrollX: 0,
+                        scrollY: 0,
+                        windowWidth: scrollW + 50,
+                        windowHeight: scrollH + 50,
+                        logging: false
+                    });
+                    imageUri = canvas.toDataURL('image/png');
+                }
+
+                if (!imageUri) {
+                    throw new Error("تعذر إنشاء الصورة");
+                }
+
                 const safeTitle = (currentBlueprint.title || 'Service_Blueprint').trim().replace(/[\/\\:*?"<>|]+/g, '_').replace(/\s+/g, '_');
                 const downloadLink = document.createElement('a');
                 downloadLink.download = `${safeTitle}.png`;
