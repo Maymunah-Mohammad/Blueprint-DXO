@@ -674,7 +674,7 @@
                         </svg>
                         <span>عرض المخطط التفاعلي</span>
                     </button>
-                    <button class="action-btn other-action-btn opacity-40 cursor-not-allowed pointer-events-none" disabled type="button">
+                    <button class="action-btn other-action-btn opacity-40 cursor-not-allowed pointer-events-none" id="export-image-btn" onclick="exportBlueprintImage()" disabled type="button">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                             <circle cx="8.5" cy="8.5" r="1.5"></circle>
@@ -2390,6 +2390,29 @@
             }
 
             const targetUrl = `interactive.html?id=${encodeURIComponent(currentBlueprint.id)}`;
+            window.open(targetUrl, '_blank');
+        };
+
+        // Action Buttons: Open Export Image Page ("تصدير كصورة")
+        window.exportBlueprintImage = async function() {
+            if (!currentBlueprint.steps || currentBlueprint.steps.length === 0) {
+                showToast("يرجى إضافة خطوات أولاً للتصدير كصورة");
+                return;
+            }
+
+            ensureBlueprintTitle();
+            window.showLoading("جاري تحضير صفحة تصدير الصورة...");
+
+            try {
+                localStorage.setItem('current_blueprint_backup', JSON.stringify(currentBlueprint));
+                await saveBlueprintToServer(false);
+            } catch(e) {
+                console.error("Auto-save before Image export error:", e);
+            } finally {
+                window.hideLoading();
+            }
+
+            const targetUrl = `export-image.html?id=${encodeURIComponent(currentBlueprint.id || '')}`;
             window.open(targetUrl, '_blank');
         };
 
