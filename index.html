@@ -764,9 +764,9 @@
                     
                     <div class="form-group">
                         <div class="form-label">الأدلة المادية</div>
-                        <input type="text" id="evidence-input" class="form-input" list="evidence-list" placeholder="إدراج أو اختيار" dir="rtl">
+                        <input type="text" id="evidence-input" class="form-input" list="evidence-list" placeholder="إدراج أو اختيار (افصل بينها بفاصلة ،)" dir="rtl">
                         <datalist id="evidence-list"></datalist>
-                        <div class="form-hint">تحديد الأجهزة أو المستندات المستخدمة في الورقية، موقع الويب، جهاز الدفع POS).</div>
+                        <div class="form-hint">يمكنك كتابة عدة أدلة مفصولة بفاصلة (،) أو سطر جديد لتظهر كـ Chips منفصلة.</div>
                     </div>
                     
                     <div class="form-group">
@@ -777,8 +777,8 @@
                     
                     <div class="form-group">
                         <div class="form-label">النقاط الحرجة أو المشاكل (/ Pain Points Bottlenecks)</div>
-                        <textarea id="pain-points-input" class="form-textarea" placeholder="الوصف هنا"></textarea>
-                        <div class="form-hint">تحديد ما إذا كان هناك تأخير أو مشكلة محتملة في هذه الخطوة (يتم تلوينها تلقائياً باللون الأحمر في المخطط كـ Alert).</div>
+                        <textarea id="pain-points-input" class="form-textarea" placeholder="اكتب المشاكل أو النقاط الحرجة (افصل بينها بفاصلة ، أو سطر جديد)"></textarea>
+                        <div class="form-hint">يمكنك إدخال عدة نقاط حرجة ومشاكل مفصولة بفاصلة (،) أو سطر جديد لتظهر كـ Chips حمراء تنبيهية داخل البطاقة.</div>
                     </div>
                     
                     <div class="form-group">
@@ -1402,10 +1402,19 @@
 
                 let painHtml = '';
                 if (step.painPoints) {
-                    painHtml = `<div class="bg-[#fff0f0] text-red-800 border border-red-100 rounded-xl p-2.5 flex flex-col gap-1 mt-1">
-                        <span class="font-bold text-[11px] text-red-600">النقاط الحرجة / المشاكل</span>
-                        <p class="text-xs text-gray-700 leading-relaxed">${step.painPoints}</p>
-                    </div>`;
+                    const painItems = step.painPoints.split(/[,،\n]+/).map(s => s.trim()).filter(Boolean);
+                    if (painItems.length > 0) {
+                        const painBadges = painItems.map(item => `
+                            <div class="bg-[#fff0f0] text-red-800 border border-red-200 rounded-lg px-2.5 py-1 text-[11px] font-medium flex items-center gap-1.5 shadow-2xs">
+                                <span class="text-red-500 text-[10px] shrink-0">⚠️</span>
+                                <span class="leading-tight">${item}</span>
+                            </div>
+                        `).join('');
+                        painHtml = `<div class="flex flex-col gap-1 mt-1">
+                            <span class="font-bold text-[11px] text-red-600">النقاط الحرجة / المشاكل</span>
+                            <div class="flex flex-wrap gap-1.5">${painBadges}</div>
+                        </div>`;
+                    }
                 }
 
                 card.innerHTML = `

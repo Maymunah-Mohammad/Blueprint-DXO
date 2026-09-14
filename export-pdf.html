@@ -552,10 +552,19 @@
 
                 let painHtml = '';
                 if (step.painPoints) {
-                    painHtml = `<div class="bg-[#fff0f0] text-red-800 border border-red-100 rounded-xl p-2.5 flex flex-col gap-1 mt-1">
-                        <span class="font-bold text-[11px] text-red-600">النقاط الحرجة / المشاكل</span>
-                        <p class="text-xs text-gray-700 leading-relaxed">${step.painPoints}</p>
-                    </div>`;
+                    const painItems = step.painPoints.split(/[,،\n]+/).map(s => s.trim()).filter(Boolean);
+                    if (painItems.length > 0) {
+                        const painBadges = painItems.map(item => `
+                            <div class="bg-[#fff0f0] text-red-800 border border-red-200 rounded-lg px-2.5 py-1 text-[11px] font-medium flex items-center gap-1.5 shadow-2xs">
+                                <span class="text-red-500 text-[10px] shrink-0">⚠️</span>
+                                <span class="leading-tight">${item}</span>
+                            </div>
+                        `).join('');
+                        painHtml = `<div class="flex flex-col gap-1 mt-1">
+                            <span class="font-bold text-[11px] text-red-600">النقاط الحرجة / المشاكل</span>
+                            <div class="flex flex-wrap gap-1.5">${painBadges}</div>
+                        </div>`;
+                    }
                 }
 
                 card.innerHTML = `
