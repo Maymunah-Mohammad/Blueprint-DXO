@@ -457,23 +457,111 @@
             }
         }
 
+        // Compute Column Indices for X-Axis Alignment (Parallel = same column, Sequential = next column)
+        function computeStepColumns(steps) {
+            if (!steps || steps.length === 0) return { colMap: new Map(), totalCols: 1 };
+
+            const stepMap = new Map();
+            steps.forEach((s, idx) => {
+                stepMap.set(s.id, { step: s, index: idx });
+            });
+
+            const colMap = new Map();
+            const visiting = new Set();
+
+            function getCol(stepId) {
+                if (colMap.has(stepId)) return colMap.get(stepId);
+                if (visiting.has(stepId)) {
+                    return 0; // Prevent cycle
+                }
+
+                const info = stepMap.get(stepId);
+                if (!info) return 0;
+                const step = info.step;
+
+                visiting.add(stepId);
+
+                let col = 0;
+                if (step.pre_step_id && stepMap.has(step.pre_step_id)) {
+                    const parentCol = getCol(step.pre_step_id);
+                    if (step.relation_type === 'parallel') {
+                        col = parentCol;
+                    } else {
+                        col = parentCol + 1;
+                    }
+                } else {
+                    let maxPrevCol = -1;
+                    for (let k = 0; k < info.index; k++) {
+                        const prevStep = steps[k];
+                        if (colMap.has(prevStep.id)) {
+                            maxPrevCol = Math.max(maxPrevCol, colMap.get(prevStep.id));
+                        }
+                    }
+                    col = maxPrevCol >= 0 ? maxPrevCol + 1 : 0;
+                }
+
+                visiting.delete(stepId);
+                colMap.set(stepId, col);
+                return col;
+            }
+
+            steps.forEach(s => {
+                getCol(s.id);
+            });
+
+            let maxCol = 0;
+            colMap.forEach(c => {
+                if (c > maxCol) maxCol = c;
+            });
+
+            return { colMap, totalCols: maxCol + 1 };
+        }
+
         function renderBlueprint() {
             containers.forEach(cid => {
                 const el = document.getElementById(cid);
                 if (el) el.innerHTML = '';
             });
 
-            (currentBlueprint.steps || []).forEach((step, idx) => {
-                const cid = getContainerIdByLayer(step.layer);
-                const container = document.getElementById(cid);
-                if (!container) return;
+            const steps = currentBlueprint.steps || [];
+            if (steps.length === 0) {
+                containers.forEach(cid => {
+                    const el = document.getElementById(cid);
+                    if (el) {
+                        el.innerHTML = `<div class="empty-placeholder text-gray-300 text-xs font-semibold py-3 px-4 border border-dashed border-gray-200 rounded-lg whitespace-nowrap opacity-60">لا يوجد خطوات في هذه الطبقة بعد</div>`;
+                    }
+                });
+                const svgGroup = document.getElementById('svg-connections-group');
+                if (svgGroup) svgGroup.innerHTML = '';
+                return;
+            }
 
-                // Remove placeholder if present
-                const placeholder = container.querySelector('.empty-placeholder');
-                if (placeholder) placeholder.remove();
+            const { colMap, totalCols } = computeStepColumns(steps);
+
+            // Create column slots for each swimlane layer
+            const layerSlots = {};
+            containers.forEach(cid => {
+                const el = document.getElementById(cid);
+                if (!el) return;
+                layerSlots[cid] = [];
+                for (let c = 0; c < totalCols; c++) {
+                    const slot = document.createElement('div');
+                    slot.className = 'blueprint-col-slot flex flex-col gap-3 min-w-[270px] max-w-[290px] shrink-0';
+                    slot.setAttribute('data-col', c);
+                    el.appendChild(slot);
+                    layerSlots[cid].push(slot);
+                }
+            });
+
+            // Populate cards into their layer and column slots
+            steps.forEach((step, idx) => {
+                const cid = getContainerIdByLayer(step.layer);
+                const col = colMap.get(step.id) || 0;
+                const slot = layerSlots[cid] && layerSlots[cid][col];
+                if (!slot) return;
 
                 const card = document.createElement('div');
-                card.className = "bg-white border border-[#d2d6db] rounded-2xl shadow-sm flex flex-col min-w-[270px] max-w-[290px] relative z-20 text-right text-xs shrink-0 transition-all hover:shadow-md overflow-hidden group";
+                card.className = "bg-white border border-[#d2d6db] rounded-2xl shadow-sm flex flex-col w-full relative z-20 text-right text-xs shrink-0 transition-all hover:shadow-md overflow-hidden group";
                 card.setAttribute('data-step-id', step.id);
                 card.setAttribute('dir', 'rtl');
 
@@ -572,13 +660,17 @@
                     </div>
                 `;
 
-                container.appendChild(card);
+                slot.appendChild(card);
             });
 
+            // If a layer has no cards across any slots, show subtle placeholder in the first slot
             containers.forEach(cid => {
                 const el = document.getElementById(cid);
-                if (el && el.children.length === 0) {
-                    el.innerHTML = `<div class="empty-placeholder text-gray-300 text-xs font-semibold py-3 px-4 border border-dashed border-gray-200 rounded-lg whitespace-nowrap opacity-60">لا يوجد خطوات في هذه الطبقة بعد</div>`;
+                if (el) {
+                    const hasCards = el.querySelector('[data-step-id]');
+                    if (!hasCards && layerSlots[cid] && layerSlots[cid][0]) {
+                        layerSlots[cid][0].innerHTML = `<div class="empty-placeholder text-gray-300 text-xs font-semibold py-3 px-4 border border-dashed border-gray-200 rounded-lg whitespace-nowrap opacity-60">لا يوجد خطوات في هذه الطبقة بعد</div>`;
+                    }
                 }
             });
 
